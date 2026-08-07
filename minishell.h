@@ -10,8 +10,41 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-typedef struct t_token
+typedef struct s_token
+{
+    e_type *type;
+    s_piece *piece;
+} t_token;
+
+typedef enum e_type
+  {
+      Q_NONE,
+      Q_SINGLE,
+      Q_DOUBLE
+  }   t_type;
+
+typedef struct s_piece
 {
     char *content;
-    char *quote;
-} s_token;
+    e_quote quote;
+    s_piece *next;
+} t_piece;
+
+typedef enum e_quote
+  {
+      Q_NONE,
+      Q_SINGLE,
+      Q_DOUBLE
+  }   t_quote;
+
+typedef struct s_noeud
+{
+    char    *sep;
+    s_noeud *left;
+    s_noeud *right;
+} t_noeud;
+
+typedef struct s_command
+{
+
+}t_command;
