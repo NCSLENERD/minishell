@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"name": "ShellPy-1",
+			"path": "../ShellPy-1"
+		}
+	],
+	"settings": {}
+}
