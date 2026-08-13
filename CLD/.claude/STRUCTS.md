@@ -1,12 +1,13 @@
-# Minishell — Référence des structures
+# Minishell — Référence
 
-> Ce document décrit **la forme** de chaque struct : ses champs, quand ils sont valides,
-> et à quoi ressemblent les données en mémoire.
->
-> Il ne contient **pas** le contrat de propriété (qui alloue / qui libère / durée de vie) :
-> c'est la section 8, laissée à remplir. Voir `MINISHELL_GUIDE.md` §7.
+> **Partie I** — la forme de chaque struct : ses champs, quand ils sont valides,
+> à quoi ressemblent les données en mémoire.
+> **Partie II** — les concepts shell : expansion, redirections, heredoc, signaux.
+> **Partie III** — le contrat de propriété, **à remplir** (livrable de Phase 0, `MINISHELL_GUIDE.md` §7).
 
 ---
+
+# Partie I — Les structures
 
 ## 1. Le trajet d'une ligne
 
@@ -35,6 +36,7 @@ readline()          "echo a\"b c\" > out | wc -l"        une seule chaîne
 
 > ⚠ Les tokens meurent **avant** les commandes.
 > Donc `argv` ne doit **jamais** pointer vers le `content` d'un `t_piece` — il faut copier.
+> **Règle retenue : chaque struct est propriétaire exclusive de ses chaînes.**
 
 ---
 
@@ -244,9 +246,6 @@ struct s_env   *next;
 /* t_shell */
 t_env       *env;
 int          exit_code;     /* ce que renvoie $?                          */
-char        *line;          /* confort : libération en cas d'erreur       */
-t_token     *tokens;        /* confort : idem                             */
-t_command   *cmds;          /* confort : idem                             */
 ```
 
 ### Le champ `exported`
@@ -280,10 +279,11 @@ main
 C'est aussi la définition d'un builtin : une commande qui doit modifier `t_shell` elle-même.
 `cd` ne peut pas être un programme externe — il changerait le répertoire de son fork, puis mourrait.
 
-### ⚠ Les champs « confort »
+### Si tu remets les champs « confort »
 
-Ils permettent de tout libérer depuis n'importe où, mais créent **deux propriétaires** pour la
-même mémoire (la variable locale de la boucle, et le champ de `t_shell`).
+Stocker `line`, `tokens`, `cmds` dans `t_shell` permet de tout libérer depuis n'importe où,
+mais crée **deux propriétaires** pour la même mémoire (la variable locale de la boucle,
+et le champ de `t_shell`).
 
 **Règle non négociable : après chaque libération, remettre le champ à `NULL`.**
 Sinon, double-free en fin de ligne.
@@ -382,8 +382,325 @@ Trois précisions :
 - **`free(NULL)` est légal et sans effet.** Pas besoin de tester avant.
 
 ---
+---
 
-## 10. Contrat de propriété — À REMPLIR
+# Partie II — Les concepts shell
+
+## 10. L'expansion
+
+**Remplacer quelque chose par sa valeur, avant de lancer la commande.**
+
+```
+$ echo $USER
+nico
+```
+
+`echo` ne reçoit **jamais** le texte `$USER`. Le shell fait le remplacement d'abord :
+
+```
+tu tapes :         echo $USER
+le shell expanse : echo nico
+echo reçoit :      argv = ["echo", "nico", NULL]
+```
+
+Trois expansions dans le sujet :
+
+| Écrit | Remplacé par |
+|---|---|
+| `$USER` | la valeur de la variable dans la table d'env |
+| `$?` | le code de sortie de la dernière commande |
+| `$NEXISTEPAS` | **rien** (chaîne vide, pas d'erreur) |
+
+Interaction avec les quotes :
+
+```
+$ echo "$USER"    →  nico     (double quote : on expanse)
+$ echo '$USER'    →  $USER    (simple quote : littéral)
+```
+
+Et le cas qui justifie toute l'architecture, avec `A="a b"` :
+
+```
+$ echo $A         →  2 arguments : "a" et "b"
+$ echo "$A"       →  1 argument  : "a b"
+```
+
+Sans le champ `quote` sur chaque `t_piece`, cette différence est impossible à produire.
+
+> ⚠ L'expansion **duplique** la valeur trouvée dans `t_env`. Elle ne met jamais le pointeur
+> de l'env dans `argv` — sinon un `unset` libérerait une chaîne encore utilisée.
+
+---
+
+## 11. Les redirections
+
+### Les trois canaux
+
+Tout processus a trois tuyaux ouverts, numérotés :
+
+```
+     ┌──────────────┐
+     │              │──► 1    stdout   (ce que la commande affiche)
+ 0 ──►│  commande    │
+     │              │──► 2    stderr   (les messages d'erreur)
+     └──────────────┘
+  ▲
+  0   stdin  (ce que la commande lit)
+```
+
+Par défaut : `0` = le clavier, `1` et `2` = l'écran.
+
+**Une redirection, c'est débrancher un de ces tuyaux et le rebrancher ailleurs.**
+
+### Le sens du chevron = le sens des données
+
+```
+commande > fichier      les données SORTENT vers le fichier      (écriture)
+commande < fichier      les données ENTRENT depuis le fichier    (lecture)
+```
+
+| | Sens | Ce qui suit | Effet |
+|---|---|---|---|
+| `>` | sortie | nom de fichier | crée / **vide** le fichier, puis écrit |
+| `>>` | sortie | nom de fichier | crée si absent, écrit **à la fin** |
+| `<` | entrée | nom de fichier | la commande lit le fichier au lieu du clavier |
+| `<<` | entrée | **délimiteur** | la commande lit ce que tu tapes |
+
+### Exemples
+
+```
+$ echo bonjour > f          # rien à l'écran, c'est parti dans f
+$ cat f
+bonjour
+
+$ echo aaa > f              # > ÉCRASE
+$ echo bbb > f
+$ cat f
+bbb
+
+$ echo aaa >> g             # >> AJOUTE
+$ echo bbb >> g
+$ cat g
+aaa
+bbb
+```
+
+### `< fichier` vs `fichier` en argument
+
+```
+$ wc -l g       →  2 g      wc reçoit "g" dans argv, il ouvre le fichier lui-même
+$ wc -l < g     →  2        wc ne reçoit AUCUN argument, le shell lui a branché g sur stdin
+```
+
+Dans le second cas, `g` **n'est pas dans `argv`** — c'est le `target` d'un `t_redirect`.
+Voir §8.
+
+---
+
+## 12. Le heredoc `<<`
+
+**« Here document » = un document écrit *ici*, dans la ligne de commande, au lieu d'être
+dans un fichier.**
+
+```
+$ cat << FIN
+> bonjour
+> comment ça va
+> FIN
+bonjour
+comment ça va
+$
+```
+
+Déroulé :
+
+1. Tu tapes `cat << FIN` et Entrée
+2. Le shell affiche `>` et **attend que tu tapes des lignes**
+3. Dès que tu tapes une ligne qui vaut **exactement** `FIN`, il s'arrête
+4. Tout ce qui précède est envoyé sur le **stdin** de `cat`
+5. `cat` l'affiche
+
+`FIN` est le **délimiteur** : c'est le `target` du `t_redirect` quand `type == R_HEREDOC`.
+
+### ⚠ `EOF` n'est pas un mot-clé
+
+```
+$ cat << EOF
+$ cat << FIN
+$ cat << STOP
+$ cat << bonjour42
+```
+
+**Ces quatre lignes marchent identiquement.** Le délimiteur est un mot quelconque que *tu*
+choisis. `EOF` est juste le plus utilisé par habitude (*End Of File*), il n'a **aucun statut
+spécial**. Choisis un mot qui n'apparaît pas dans ton texte.
+
+### ⚠ `>>` n'a aucun délimiteur
+
+```
+>> out          "out" est un NOM DE FICHIER
+<< EOF          "EOF" est un DÉLIMITEUR
+```
+
+Les deux se ressemblent (deux chevrons) mais n'ont rien en commun.
+
+### Toutes les commandes ne lisent pas stdin
+
+| Lisent stdin | Ne lisent pas stdin |
+|---|---|
+| `cat`, `wc`, `grep`, `sort`, `head` | `echo`, `pwd`, `ls` |
+
+```
+$ echo bonjour < nimportequoi.txt
+bonjour                            ← le fichier est ignoré
+```
+
+Donc brancher un heredoc sur `echo` ne sert à rien : tu peux taper 50 lignes, il ne les
+verra jamais.
+
+### Écrire un heredoc dans un fichier
+
+```
+$ cat << BENOIT > test
+> bonjour
+> deuxième ligne
+> BENOIT
+$ cat test
+bonjour
+deuxième ligne
+```
+
+```
+ce que tu tapes  ──►  stdin de cat  ──►  cat recopie sur stdout  ──►  fichier test
+   (heredoc <<)                                                          (> test)
+```
+
+`cat` sert de tuyau : il lit son entrée et la recrache sur sa sortie. C'est pour ça qu'on
+l'utilise systématiquement avec les heredocs.
+
+### Cas d'étude : `echo << BENOIT < test`
+
+Syntaxiquement **valide** — le parser doit l'accepter. Ce qu'il produit :
+
+```
+argv    = ["echo", NULL]
+redirs  = [ (R_HEREDOC, "BENOIT") ] ──► [ (R_IN, "test") ]
+```
+
+1. Le shell collecte le heredoc : il fait taper des lignes jusqu'à `BENOIT`
+2. Applique la 1ʳᵉ redirection : stdin = le heredoc
+3. Applique la 2ᵉ : stdin = `test` — **la première est écrasée** (liste ordonnée)
+4. `echo` s'exécute, ignore stdin, affiche une ligne vide
+
+Et si `test` n'existe pas, erreur à l'étape 3 et `echo` ne tourne pas.
+
+> **Point d'implémentation :** le heredoc est collecté **avant l'exécution**, même s'il finit
+> écrasé et même si la commande ne lira jamais rien. Les heredocs se lisent après le parsing,
+> avant l'exécution, dans l'ordre, pour toute la ligne. Sinon `cat << A << B` est impossible.
+
+Et ça rejoint `MINISHELL_GUIDE.md` §9 : le parser voit la **forme**, pas le sens.
+Que la commande soit inutile n'est pas son problème.
+
+---
+
+## 13. Signaux et fin de saisie
+
+### ctrl-D n'est pas un signal
+
+| Touche | Nature | Effet |
+|---|---|---|
+| **ctrl-C** | signal `SIGINT` | interrompt ce qui tourne |
+| **ctrl-\\** | signal `SIGQUIT` | quitte brutalement |
+| **ctrl-D** | **pas un signal** | ferme l'entrée (EOF) |
+
+Conséquence : **on ne peut pas attraper ctrl-D avec un gestionnaire de signal.** Il n'y en a
+pas. Chercher à en poser un est une erreur classique.
+
+`readline()` le donne gratuitement :
+
+```
+line != NULL   →  l'utilisateur a tapé une ligne
+line == NULL   →  ctrl-D : plus d'entrée, on quitte le shell
+```
+
+Bash affiche `exit` avant de partir — ça se voit en soutenance.
+
+### ctrl-D selon l'endroit
+
+| Où | Comportement attendu |
+|---|---|
+| Prompt, **ligne vide** | le shell quitte (comme `exit`) |
+| Prompt, **ligne commencée** | rien du tout — bash l'ignore |
+| Pendant un **heredoc** | le heredoc se termine, avec un warning, et la commande **s'exécute** |
+
+```
+$ cat << FIN
+> bonjour
+> ^D
+bash: warning: here-document at line 1 delimited by end-of-file (wanted `FIN')
+bonjour              ← cat s'exécute quand même
+```
+
+### ctrl-C selon l'endroit
+
+| Où | Comportement attendu |
+|---|---|
+| Prompt | jeter la ligne, nouveau prompt **sur une nouvelle ligne**, `$?` = 130 |
+| Pendant un **heredoc** | abandonner le heredoc **et** la commande, `$?` = 130 |
+| Pendant une commande (`sleep 10`) | tuer l'enfant, **pas** le shell, `$?` = 130 |
+
+```
+$ cat << FIN
+> bonjour
+> ^C
+$ echo $?
+130
+```
+
+**Dans les trois cas, le shell ne doit jamais mourir.**
+
+### ctrl-C vs ctrl-D dans un heredoc — opposés
+
+| | Heredoc | Commande |
+|---|---|---|
+| **ctrl-C** | abandonné | **pas exécutée**, `$?` = 130 |
+| **ctrl-D** | terminé avec un warning | **exécutée** avec ce qui a été tapé |
+
+### Les codes de sortie des signaux
+
+`130` n'est pas magique : c'est **128 + le numéro du signal**.
+
+| Signal | Numéro | Code |
+|---|---|---|
+| `SIGINT` (ctrl-C) | 2 | 130 |
+| `SIGQUIT` (ctrl-\\) | 3 | 131 |
+
+### Implications pour le code
+
+- **C'est ici que sert la variable globale.** Une seule, contenant uniquement le numéro du
+  signal — la seule autorisée par le sujet, et c'est son usage prévu.
+- **Le heredoc partiel doit être libéré** quand ctrl-C arrive : lignes accumulées, descripteurs
+  ouverts, `t_command` peut-être construite à moitié. D'où l'insistance sur les fonctions de
+  libération **avant** d'en avoir besoin.
+
+### Deux approches pour un heredoc interruptible
+
+**A — un handler différent pendant le heredoc.** On change le comportement du signal avant la
+saisie, on le remet après. Le handler positionne la globale, la boucle de lecture la teste.
+Léger, mais `readline` est bloquant et l'interrompre proprement demande de la précision.
+
+**B — forker pour collecter le heredoc.** L'enfant lit les lignes et les écrit dans un tuyau ;
+dans l'enfant, ctrl-C le tue simplement. Le parent regarde **comment** l'enfant est mort :
+tué par SIGINT → on abandonne la ligne, `$?` = 130. Plus de code, beaucoup plus robuste,
+et gère naturellement `cat << A << B`.
+
+**B est recommandée.** Le raisonnement « je regarde comment mon enfant est mort » est de toute
+façon celui qu'il faudra écrire pour les commandes normales.
+
+---
+---
+
+# Partie III — Contrat de propriété (À REMPLIR)
 
 > Livrable de Phase 0 (`MINISHELL_GUIDE.md` §7).
 > *« Pour chaque struct définie, écrire sa fonction de libération dans la même heure. »*
@@ -397,13 +714,21 @@ Trois précisions :
 | `t_env` | | | |
 | `t_shell` | | | |
 
-### Questions à trancher avant d'écrire le lexer
+### Décisions déjà prises
 
-- [ ] Quand le parser construit `argv`, il **copie** le `content` des `t_piece` ou il **réutilise** le pointeur ?
+- [x] **Le parser copie** le `content` des `t_piece` pour construire `argv`. Il ne réutilise
+      jamais le pointeur. Raisons : les durées de vie divergent ; un mot à plusieurs morceaux
+      doit de toute façon être concaténé ; l'expansion alloue déjà.
+      → **Chaque struct est propriétaire exclusive de ses chaînes.**
+
+### Questions à trancher
+
 - [ ] Qui libère la chaîne rendue par `readline()` ?
-- [ ] Si le parser échoue à mi-chemin (`ls |`, `> ` en fin de ligne), qui libère l'arbre à moitié construit ?
-- [ ] Quand l'expansion remplace `$USER`, elle duplique la valeur de `t_env` ou elle pointe dessus ?
-- [ ] Après avoir libéré `shell->tokens`, qui remet le champ à `NULL` ?
+- [ ] Si le parser échoue à mi-chemin (`ls |`, `> ` en fin de ligne), qui libère ce qui a
+      déjà été construit ?
+- [ ] Les heredocs sont stockés où entre la collecte et l'exécution — fichier temporaire,
+      tuyau, ou chaîne en mémoire ?
+- [ ] `t_shell` est allouée sur la pile de `main` ou sur le tas ?
 
 ### Les cinq fonctions de libération à écrire
 
