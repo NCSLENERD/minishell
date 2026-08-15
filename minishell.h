@@ -11,35 +11,39 @@
 /* ************************************************************************** */
 #ifndef MINISHELL_H
 # define MINISHELL_H
+# define ERR_SYNTAX 1
+# define ERR_MALLOC 2
 
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 typedef enum e_type
 {
 	MOT,
 	PIPE,
     REDIRECT,
-	UNEXPECTED_S,
-	UNEXPECTED_D
+	UNEXPECTED_P,//;
+	UNEXPECTED_S,//&
+	UNEXPECTED_D//&&
 }t_type;
 
 typedef enum e_type_redirect
 {
 	R_NONE,
-    R_IN,
-	R_OUT,
-	R_HEREDOC,
-	R_APPEND
+    R_IN, // <
+	R_OUT, // >
+	R_HEREDOC, // <<
+	R_APPEND // >>
 }t_type_redirect;
 
 typedef enum e_quote
 {
 	Q_NONE,
-    Q_SINGLE,
-    Q_DOUBLE	
+    Q_SINGLE, // ''
+    Q_DOUBLE // ""
 }t_quote;
 
 typedef struct s_piece
@@ -92,11 +96,30 @@ typedef struct s_shell
 char	*ft_strdup(const char *s);
 size_t	ft_strlen(const char *str);
 char	*ft_substr(char const *s, unsigned int start, size_t len);
+void	ft_putstr_fd(char *s, int fd);
 t_token *token_new(t_type type);
-t_piece *piece_new();
+t_piece *piece_new(t_quote quote);
 void	token_add_back(t_token **head, t_token *token);
 void	piece_add_back(t_piece **head, t_piece *piece);
 void	free_pieces(t_piece *head);
 void	free_tokens(t_token **head);
-
+int	lexer(char *line, t_token **head);
+void	print_token(t_token *token); // temporaire
+int	is_operator(char c);
+int	is_space(char c);
+int	read_op(char *line, int *i, t_token **head);
+int	read_word(char *line, int *i, t_token **head);
+int	read_piece(char *line, int *i, t_token *token);
+t_quote get_quote_type(char *line, int *i);
+int	quote_error(char *symbol);
+char	*get_quote_symbol(t_quote quote);
+void	free_commands(t_command **head);
+void	free_redirects(t_redirect *head);
+void	command_add_back(t_command **head, t_command *command);
+void	redirect_add_back(t_redirect **head, t_redirect *redirect);
+t_redirect *redirect_new(t_type_redirect type);
+t_command *command_new();
+void	free_argv(char **argv);
+int	check_syntax(t_token *tokens);
 #endif
+ 

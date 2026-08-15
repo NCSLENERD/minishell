@@ -11,20 +11,57 @@
 /* ************************************************************************** */
 #include "minishell.h"
 
-int	main()
+int	process_line(char *line, t_shell *shell)
+{
+	t_token	*tokens;
+	int	ret;
+
+	tokens = NULL;
+	ret = lexer(line, &tokens);
+	if (ret == ERR_SYNTAX)
+	{
+		shell->exit_code = 2;
+		return (ERR_SYNTAX);
+	}
+	else if (ret == ERR_MALLOC)
+		return (ERR_MALLOC);
+	if (check_syntax(tokens) == ERR_SYNTAX)
+	{
+		shell->exit_code = 2;
+		free_tokens(&tokens);
+		return (ERR_SYNTAX);
+	}
+	print_token(tokens);
+	free_tokens(&tokens);
+	return (0);
+}
+
+int	main(int argc, char **argv, char **envp)
 {
 	char *line;
+	t_shell	shell;
 
+	(void)argc;
+	(void)argv;
+	(void)envp;
+	shell.env = NULL;
+	shell.exit_code = 0;
 	while(1)
 	{
 		line = readline("minishell$ ");
-		if(line == NULL)
+		if (line == NULL)
 		{
 			printf("exit\n");
 			break;
 		}
-		add_history(line);
-		//lexer(line);
+		if (line[0] != '\0')
+			add_history(line);
+		if (process_line(line, &shell) == ERR_MALLOC)
+		{
+			free(line);
+			exit(1);
+		}
 		free(line);
 	}
+	return (shell.exit_code);
 }

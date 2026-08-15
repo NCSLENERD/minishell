@@ -11,20 +11,28 @@
 /* ************************************************************************** */
 #include "minishell.h"
 
-void	print_token(t_token *token)
+int	lexer(char *line, t_token **head)
 {
-	t_piece *curr;
+	int	i;
+	int	ret;
 
-	curr = token->piece;
-	while (curr != NULL)
+	*head = NULL;
+	i = 0;
+	while (line[i] != '\0')
 	{
-		printf("[%d, %s, %d] ,",token->type,curr->content, curr->quote);
-		curr = curr->next;
+		while(is_space(line[i]))
+			i++;
+		if	(line[i] == '\0')
+			break;
+		if (is_operator(line[i]))
+			ret = read_op(line, &i, head);
+		else
+			ret = read_word(line, &i, head);
+		if (ret != 0)
+		{
+			free_tokens(head);
+			return (ret);
+		}
 	}
+	return (0);
 }
-
-
-/*int main()
-{
-
-}*/
