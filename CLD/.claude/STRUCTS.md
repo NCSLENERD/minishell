@@ -700,19 +700,22 @@ façon celui qu'il faudra écrire pour les commandes normales.
 ---
 ---
 
-# Partie III — Contrat de propriété (À REMPLIR)
+# Partie III — Contrat de propriété
 
 > Livrable de Phase 0 (`MINISHELL_GUIDE.md` §7).
 > *« Pour chaque struct définie, écrire sa fonction de libération dans la même heure. »*
+>
+> Rempli le 17 août 2026. Chaque ligne décrit ce que le code fait **aujourd'hui** — si le
+> code change, cette page change avec lui.
 
 | Struct | Qui l'alloue | Qui la libère | Quand exactement |
 |---|---|---|---|
-| `t_piece` | | | |
-| `t_token` | | | |
-| `t_redirect` | | | |
-| `t_command` | | | |
-| `t_env` | | | |
-| `t_shell` | | | |
+| `t_piece` | `piece_new`, via `read_piece` | `free_pieces`, appelée par `free_tokens` | avec son token propriétaire |
+| `t_token` | `token_new`, via `read_word` / `read_op` | `free_tokens` | fin de `process_line`, après le parser |
+| `t_redirect` | `redirect_new`, via `add_redirect` | `free_redirects`, appelée par `free_commands` | avec sa commande propriétaire |
+| `t_command` | `command_new`, via `parser` | `free_commands` | fin de `process_line` ⚠ à revoir avec l'exécution |
+| `t_env` | `env_new`, via `add_env_var` | `free_env` | `main`, après la boucle — vit toute la session |
+| `t_shell` | pile de `main` | personne | libérée automatiquement au `return` |
 
 ### Décisions déjà prises
 
@@ -721,19 +724,64 @@ façon celui qu'il faudra écrire pour les commandes normales.
       doit de toute façon être concaténé ; l'expansion alloue déjà.
       → **Chaque struct est propriétaire exclusive de ses chaînes.**
 
-### Questions à trancher
+### Questions tranchées
 
-- [ ] Qui libère la chaîne rendue par `readline()` ?
-- [ ] Si le parser échoue à mi-chemin (`ls |`, `> ` en fin de ligne), qui libère ce qui a
-      déjà été construit ?
-- [ ] Les heredocs sont stockés où entre la collecte et l'exécution — fichier temporaire,
-      tuyau, ou chaîne en mémoire ?
-- [ ] `t_shell` est allouée sur la pile de `main` ou sur le tas ?
+- [x] **Qui libère la chaîne rendue par `readline()` ?**
+      `main`, et personne d'autre — un `free(line)` à chaque tour de boucle. `lexer` ne fait
+      que la lire caractère par caractère, il n'en garde aucun pointeur : tout ce qui entre
+      dans un `t_piece` est une copie faite par `ft_substr`.
 
-### Les cinq fonctions de libération à écrire
+- [x] **Si une fonction échoue à mi-chemin, qui libère ce qui a déjà été construit ?**
+      Celui qui construit, avant de renvoyer l'erreur. `lexer.c:32` appelle `free_tokens`
+      avant de remonter son code ; `parser` appelle `free_commands`.
+      → **Corollaire aussi important que la règle : l'appelant ne doit surtout pas
+      re-libérer.** C'est pourquoi `process_line` ne libère rien après un `ERR_MALLOC` du
+      lexer — il obtiendrait un double free.
 
-- [ ] `t_piece`
-- [ ] `t_token` (descend dans les pieces)
-- [ ] `t_redirect`
-- [ ] `t_command` (descend dans argv et redirs)
-- [ ] `t_env`
+- [ ] 🔴 **Où sont stockés les heredocs entre la collecte et l'exécution ?**
+      Fichier temporaire / tuyau / chaîne en mémoire. **Seule question encore ouverte.**
+      À décider avec le binôme : c'est lui qui branche le descripteur sur l'entrée standard.
+
+- [x] **`t_shell` sur la pile ou sur le tas ?**
+      Sur la pile de `main`, passée par adresse (`&shell`) à tout ce qui en a besoin. Une
+      seule instance, durée de vie du programme, aucune allocation à gérer.
+
+### Trois règles qui découlent de tout ça
+
+**a. Un objet rejoint sa structure propriétaire dès sa création**, avant même d'être rempli.
+`add_redirect` accroche le `t_redirect` à `cmd->redirs` *puis* remplit `target`. Si le
+remplissage échoue, il n'y a rien à libérer localement — l'objet est déjà sous la
+responsabilité de `free_commands`. Libérer soi-même à cet endroit produit un **double free**,
+parce que `free_redirects` et `free_argv` prennent un simple pointeur et ne peuvent pas
+remettre le champ du propriétaire à `NULL`.
+
+**b. Les constructeurs adoptent, ils ne dupliquent pas.**
+`env_new(key, value, exported)` range les deux pointeurs tels quels : le maillon en devient
+propriétaire, `free_env` les libérera. Contrepartie à respecter par tout appelant : **si
+`env_new` renvoie `NULL`, elle n'a rien adopté** — c'est à l'appelant de libérer `key` et
+`value` avant de remonter l'erreur (`add_env_var` le fait).
+
+**c. Toute fonction de libération d'une liste prend un double pointeur et remet
+`*head = NULL`.** `free_tokens`, `free_commands`, `free_env`. C'est ce qui rend un second
+appel inoffensif — et il y en a un : `init_env` nettoie en cas d'échec, puis `main` appelle
+`free_env` à la sortie.
+
+### Chaînes partagées entre les deux moitiés du projet
+
+`t_env` est la seule structure écrite par l'un et lue par l'autre : les builtins `export` /
+`unset` la modifient, l'expansion la lit.
+
+> ⚠ Proposition à valider ensemble — `export` n'existe pas encore, cette règle est écrite
+> en anticipation et non observée dans le code.
+
+Règle proposée : **les builtins libèrent l'ancienne valeur avant d'en ranger une nouvelle**,
+et n'insèrent que des chaînes fraîchement allouées — jamais un pointeur venu d'`argv`, qui
+meurt avec la commande.
+
+### Les cinq fonctions de libération
+
+- [x] `t_piece` → `free_pieces` (`utils_list.c`)
+- [x] `t_token` → `free_tokens`, descend dans les pieces (`utils_list.c`)
+- [x] `t_redirect` → `free_redirects` (`utils_list2.c`)
+- [x] `t_command` → `free_commands`, descend dans `argv` et `redirs` (`utils_list2.c`)
+- [x] `t_env` → `free_env` (`utils_env.c`)
