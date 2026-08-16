@@ -46,3 +46,48 @@ void	print_token(t_token *token)
 	}
 	printf("\n");
 }
+
+void	print_pieces_of_token(t_token *token)
+{
+	t_token	*curr;
+	char	*str;
+
+	curr = token;
+	while (curr != NULL)
+	{
+		str = piece_to_str(curr->piece);
+		printf("[%s]", str);
+		free (str);
+		curr = curr->next;
+	}
+	printf("\n");
+}
+
+void	print_commands(t_command *commands)
+{
+	int	i;
+	t_redirect	*tmp;
+
+	while (commands != NULL)
+	{
+		tmp = commands->redirs;
+		i = 0;
+		printf("[");
+		while (commands->argv != NULL && commands->argv[i] != NULL)
+		{
+			printf("%s,", commands->argv[i]);
+			i++;
+		}
+		printf("]");
+		while (tmp != NULL)
+		{
+			printf(" -> [");
+			printf("%s,", get_redir_symbol(tmp->type));
+			printf("%s,", tmp->target);
+			printf("quote : %d]", tmp->flag_quote);
+			tmp = tmp->next;
+		}
+		commands = commands->next;
+	}
+	printf("\n");
+}

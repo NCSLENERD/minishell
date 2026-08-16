@@ -121,5 +121,14 @@ t_redirect *redirect_new(t_type_redirect type);
 t_command *command_new();
 void	free_argv(char **argv);
 int	check_syntax(t_token *tokens);
+char	*get_redir_symbol(t_type_redirect redir_type);
+int	calc_len_piece(t_piece *piece);
+char	*ft_strjoin(char const *s1, char const *s2);
+char	*piece_to_str(t_piece	*piece);
+void	print_pieces_of_token(t_token *token);
+int parser(t_token *tokens, t_command **head);
+void	print_commands(t_command *commands);
+int	count_argv(t_token *tokens);
+int	fill_command(t_token **tokens, t_command *cmd);
 #endif
  

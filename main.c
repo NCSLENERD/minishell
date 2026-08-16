@@ -14,9 +14,11 @@
 int	process_line(char *line, t_shell *shell)
 {
 	t_token	*tokens;
+	t_command	*commands;
 	int	ret;
 
 	tokens = NULL;
+	commands = NULL;
 	ret = lexer(line, &tokens);
 	if (ret == ERR_SYNTAX)
 	{
@@ -31,7 +33,16 @@ int	process_line(char *line, t_shell *shell)
 		free_tokens(&tokens);
 		return (ERR_SYNTAX);
 	}
-	print_token(tokens);
+	if (parser(tokens, &commands) == ERR_MALLOC)
+	{
+		free_tokens(&tokens);
+		return (ERR_MALLOC);
+	}
+ 	print_token(tokens);
+	print_pieces_of_token(tokens);
+	print_commands(commands);
+	printf("%d\n", count_argv(tokens));
+	free_commands(&commands);
 	free_tokens(&tokens);
 	return (0);
 }
