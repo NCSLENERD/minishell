@@ -91,3 +91,11 @@ void	print_commands(t_command *commands)
 	}
 	printf("\n");
 }
+
+void	print_debugger(t_token *tokens, t_command *commands)
+{
+	print_token(tokens);
+	print_pieces_of_token(tokens);
+	print_commands(commands);
+	printf("%d\n", count_argv(tokens));
+}

@@ -11,6 +11,27 @@
 /* ************************************************************************** */
 #include "minishell.h"
 
+int	build_token(char *line, t_shell *shell, t_token	**tokens)
+{
+	int	ret;
+
+	ret = lexer(line, tokens);
+	if (ret == ERR_SYNTAX)
+	{
+		shell->exit_code = 2;
+		return (ERR_SYNTAX);
+	}
+	else if (ret == ERR_MALLOC)
+		return (ERR_MALLOC);
+	if (check_syntax(*tokens) == ERR_SYNTAX)
+	{
+		shell->exit_code = 2;
+		free_tokens(tokens);
+		return (ERR_SYNTAX);
+	}
+	return (0);
+}
+
 int	process_line(char *line, t_shell *shell)
 {
 	t_token	*tokens;
@@ -19,29 +40,15 @@ int	process_line(char *line, t_shell *shell)
 
 	tokens = NULL;
 	commands = NULL;
-	ret = lexer(line, &tokens);
-	if (ret == ERR_SYNTAX)
-	{
-		shell->exit_code = 2;
-		return (ERR_SYNTAX);
-	}
-	else if (ret == ERR_MALLOC)
-		return (ERR_MALLOC);
-	if (check_syntax(tokens) == ERR_SYNTAX)
-	{
-		shell->exit_code = 2;
-		free_tokens(&tokens);
-		return (ERR_SYNTAX);
-	}
+	ret = build_token(line, shell, &tokens);
+	if (ret != 0)
+		return (ret);
 	if (parser(tokens, &commands) == ERR_MALLOC)
 	{
 		free_tokens(&tokens);
 		return (ERR_MALLOC);
 	}
- 	print_token(tokens);
-	print_pieces_of_token(tokens);
-	print_commands(commands);
-	printf("%d\n", count_argv(tokens));
+ 	print_debugger(tokens, commands);
 	free_commands(&commands);
 	free_tokens(&tokens);
 	return (0);
@@ -54,9 +61,13 @@ int	main(int argc, char **argv, char **envp)
 
 	(void)argc;
 	(void)argv;
-	(void)envp;
 	shell.env = NULL;
 	shell.exit_code = 0;
+	if (init_env(envp, &shell.env) != 0)
+	{
+		ft_putstr_fd("minishell: allocation error\n",2);
+		return (1);
+	}
 	while(1)
 	{
 		line = readline("minishell$ ");
@@ -69,10 +80,12 @@ int	main(int argc, char **argv, char **envp)
 			add_history(line);
 		if (process_line(line, &shell) == ERR_MALLOC)
 		{
+			free_env(&shell.env);
 			free(line);
 			exit(1);
 		}
 		free(line);
 	}
+	free_env(&shell.env);
 	return (shell.exit_code);
 }

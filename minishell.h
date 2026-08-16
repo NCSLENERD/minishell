@@ -97,6 +97,7 @@ char	*ft_strdup(const char *s);
 size_t	ft_strlen(const char *str);
 char	*ft_substr(char const *s, unsigned int start, size_t len);
 void	ft_putstr_fd(char *s, int fd);
+char	*ft_strchr(const char *s, int c);
 t_token *token_new(t_type type);
 t_piece *piece_new(t_quote quote);
 void	token_add_back(t_token **head, t_token *token);
@@ -130,5 +131,11 @@ int parser(t_token *tokens, t_command **head);
 void	print_commands(t_command *commands);
 int	count_argv(t_token *tokens);
 int	fill_command(t_token **tokens, t_command *cmd);
+void	print_debugger(t_token *tokens, t_command *commands);
+int	init_env(char **envp, t_env **head);
+int	add_env_var(char *str, t_env **head);
+void	env_add_back(t_env **head, t_env *env);
+t_env	*env_new(char *key, char *value, int flag_exported);
+void	free_env(t_env **head);
 #endif
  
