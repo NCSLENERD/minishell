@@ -54,9 +54,32 @@ int	process_line(char *line, t_shell *shell)
 	return (0);
 }
 
-int	main(int argc, char **argv, char **envp)
+void	shell_loop(t_shell *shell)
 {
 	char *line;
+
+	while(1)
+	{
+		line = readline("minishell$ ");
+		if (line == NULL)
+		{
+			printf("exit\n");
+			break;
+		}
+		if (line[0] != '\0')
+			add_history(line);
+		if (process_line(line, shell) == ERR_MALLOC)
+		{
+			free_env(&shell->env);
+			free(line);
+			exit(1);
+		}
+		free(line);
+	}
+}
+
+int	main(int argc, char **argv, char **envp)
+{
 	t_shell	shell;
 
 	(void)argc;
@@ -68,24 +91,7 @@ int	main(int argc, char **argv, char **envp)
 		ft_putstr_fd("minishell: allocation error\n",2);
 		return (1);
 	}
-	while(1)
-	{
-		line = readline("minishell$ ");
-		if (line == NULL)
-		{
-			printf("exit\n");
-			break;
-		}
-		if (line[0] != '\0')
-			add_history(line);
-		if (process_line(line, &shell) == ERR_MALLOC)
-		{
-			free_env(&shell.env);
-			free(line);
-			exit(1);
-		}
-		free(line);
-	}
+	shell_loop(&shell);
 	free_env(&shell.env);
 	return (shell.exit_code);
 }

@@ -72,45 +72,49 @@ int	add_redirect(t_token *token, t_command *command)
 	}
 	return (0);
 }
-
-int	fill_command(t_token **tokens, t_command *cmd)
+int	fill_command2(t_token **tokens, t_command *cmd, int *i)
 {
-	int	count;
 	t_token	*curr_token;
-	int	i;
 
-	i = 0;
 	curr_token = *tokens;
-	count = count_argv(*tokens);
-	cmd->argv = malloc(sizeof(char *) * (count + 1));
-	if (!cmd->argv)
-		return (ERR_MALLOC);
 	while (curr_token != NULL && curr_token->type != PIPE)
 	{
 		if (curr_token->type == REDIRECT)
 		{
 			if(add_redirect(curr_token, cmd) != 0)
-			{
-				cmd->argv[i] = NULL;
 				return (ERR_MALLOC);
-			}
 			curr_token = curr_token->next;
 		}
 		else
 		{
-			cmd->argv[i] = piece_to_str(curr_token->piece);
-			if (!cmd->argv[i])
-			{
-				cmd->argv[i] = NULL;
+			cmd->argv[*i] = piece_to_str(curr_token->piece);
+			if (!cmd->argv[*i])
 				return (ERR_MALLOC);
-			}
-			i++;
+			*i = *i + 1;
 		}
 		curr_token = curr_token->next;
 	}
-	cmd->argv[i] = NULL;
 	*tokens = curr_token;
 	return (0);
+}
+
+int	fill_command(t_token **tokens, t_command *cmd)
+{
+	int	count;
+	int	i;
+
+	i = 0;
+	count = count_argv(*tokens);
+	cmd->argv = malloc(sizeof(char *) * (count + 1));
+	if (!cmd->argv)
+		return (ERR_MALLOC);
+	while(i <= count)
+	{
+		cmd->argv[i] = NULL;
+		i++;
+	}
+	i = 0;
+	return (fill_command2(tokens, cmd, &i));
 }
 
 // > out echo hi
