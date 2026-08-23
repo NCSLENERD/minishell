@@ -22,8 +22,19 @@ int	cmd_error(char *cmd, char *msg, int code)
 	return (code);
 }
 
+int	is_directory(char *path)
+{
+	struct stat	buf;
+
+	if (stat(path, &buf) != 0)
+		return (0);
+	return (S_ISDIR(buf.st_mode));
+}
+
 int	execve_error(char *cmd)
 {
+	if (errno == EACCES && is_directory(cmd))
+		return (cmd_error(cmd, "Is a directory", 126));
 	if (errno == EACCES)
 		return (cmd_error(cmd, "Permission denied", 126));
 	if (errno == ENOEXEC)

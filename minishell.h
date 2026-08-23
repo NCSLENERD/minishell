@@ -154,5 +154,6 @@ char	*search_in_path(char **dirs, char *cmd);
 char	*find_path(char *cmd, t_env *env);
 int	cmd_error(char *cmd, char *msg, int code);
 int	execve_error(char *cmd);
+int	is_directory(char *path);
 #endif
  
