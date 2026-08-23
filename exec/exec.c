@@ -17,6 +17,10 @@ void	exec_child(t_command *cmd, t_shell *shell)
 	char	**envp;
 	char	*path;
 
+	if (apply_redirs(cmd->redirs) != 0)
+		exit(1);
+	if (cmd->argv[0] == NULL)
+		exit(0);
 	envp = env_to_tab(shell->env);
 	if (!envp)
 		exit(cmd_error(cmd->argv[0], "allocation error", 1));
@@ -32,7 +36,9 @@ int	execute(t_command *cmd, t_shell *shell)
 	pid_t	pid;
 	int		status;
 
-	if (!cmd || !cmd->argv || !cmd->argv[0])
+	if (!cmd || !cmd->argv)
+		return (0);
+	if (cmd->argv[0] == NULL && cmd->redirs == NULL)
 		return (0);
 	pid = fork();
 	if (pid == -1)
