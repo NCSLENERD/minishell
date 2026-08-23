@@ -14,11 +14,15 @@
 # define ERR_SYNTAX 1
 # define ERR_MALLOC 2
 
+#include "libft/libft.h"
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/wait.h>
 
 typedef enum e_type
 {
@@ -137,5 +141,18 @@ int	add_env_var(char *str, t_env **head);
 void	env_add_back(t_env **head, t_env *env);
 t_env	*env_new(char *key, char *value, int flag_exported);
 void	free_env(t_env **head);
+int	execute(t_command *cmds, t_shell *shell);
+void	exec_child(t_command *cmd, t_shell *shell);
+void	set_exit_status(t_shell *shell, int status);
+char	**env_to_tab(t_env *env);
+int	count_env_var(t_env *env);
+char	*make_env_entry(t_env *var);
+int	fill_env_tab(char **tab, t_env *env);
+char	*get_env_value(t_env *env, char *key);
+char	*join_path(char *dir, char *cmd);
+char	*search_in_path(char **dirs, char *cmd);
+char	*find_path(char *cmd, t_env *env);
+int	cmd_error(char *cmd, char *msg, int code);
+int	execve_error(char *cmd);
 #endif
  
