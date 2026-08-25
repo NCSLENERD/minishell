@@ -27,9 +27,6 @@ void	child_pipe_setup(int prev_fd, int *fds, t_command *cmd)
 	}
 }
 
-// Le pere n'execute rien : il ferme tout ce dont il n'a plus l'usage.
-// Garder fds[1] ouvert empecherait le fils suivant de voir l'EOF.
-// Renvoie le prev_fd du tour suivant, ou -1 pour la derniere commande.
 int	parent_pipe_setup(int prev_fd, int *fds, t_command *cmd)
 {
 	if (prev_fd != -1)
@@ -42,8 +39,29 @@ int	parent_pipe_setup(int prev_fd, int *fds, t_command *cmd)
 	return (-1);
 }
 
-// Fork, puis cote fils : branchement des pipes avant exec_child, qui
-// ne revient jamais. Cote pere : renvoie le pid du fils lance.
+int	run_pipeline(t_command *cmds, t_shell *shell)
+{
+	t_command	*curr;
+	int			fds[2];
+	int			prev_fd;
+	pid_t		pid;
+
+	prev_fd = -1;
+	curr = cmds;
+	while (curr != NULL)
+	{
+		if (curr->next != NULL && pipe(fds) == -1)
+			return (cmd_error("pipe", strerror(errno), 1));
+		pid = launch_command(curr, shell, prev_fd, fds);
+		if (pid == -1)
+			return (1);
+		prev_fd = parent_pipe_setup(prev_fd, fds, curr);
+		curr = curr->next;
+	}
+	wait_all(pid, shell);
+	return (0);
+}
+
 pid_t	launch_command(t_command *cmd, t_shell *shell, int prev_fd, int *fds)
 {
 	pid_t	pid;
@@ -62,9 +80,6 @@ pid_t	launch_command(t_command *cmd, t_shell *shell, int prev_fd, int *fds)
 	return (pid);
 }
 
-// Attend tous les fils pour ne pas laisser de zombies, mais ne retient
-// que le code de la derniere commande du pipeline. L'ordre de mort n'est
-// pas garanti, d'ou la comparaison du pid retourne avec celui attendu.
 void	wait_all(pid_t last, t_shell *shell)
 {
 	pid_t	pid;

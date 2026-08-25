@@ -28,7 +28,10 @@ SRCS = main.c \
 	exec/path.c \
 	exec/error_exec.c \
 	exec/redirect.c \
-	exec/pipeline.c
+	exec/pipeline.c \
+	exec/builtins.c \
+	exec/builtin_echo.c \
+	exec/builtin_env.c
 
 OBJS = $(SRCS:.c=.o)
 
