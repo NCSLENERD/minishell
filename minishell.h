@@ -95,6 +95,7 @@ typedef struct s_shell
 
 char	*ft_strdup(const char *s);
 size_t	ft_strlen(const char *str);
+char	*ft_itoa(int n);
 char	*ft_substr(char const *s, unsigned int start, size_t len);
 void	ft_putstr_fd(char *s, int fd);
 char	*ft_strchr(const char *s, int c);
@@ -126,6 +127,7 @@ char	*get_redir_symbol(t_type_redirect redir_type);
 int	calc_len_piece(t_piece *piece);
 char	*ft_strjoin(char const *s1, char const *s2);
 char	*piece_to_str(t_piece	*piece);
+void	piece_to_str2(t_piece *piece, char *str);
 void	print_pieces_of_token(t_token *token);
 int parser(t_token *tokens, t_command **head);
 void	print_commands(t_command *commands);
@@ -137,5 +139,6 @@ int	add_env_var(char *str, t_env **head);
 void	env_add_back(t_env **head, t_env *env);
 t_env	*env_new(char *key, char *value, int flag_exported);
 void	free_env(t_env **head);
+char *get_env_value(t_shell *shell, char *str);
 #endif
  
