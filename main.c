@@ -48,7 +48,7 @@ int	process_line(char *line, t_shell *shell)
 		free_tokens(&tokens);
 		return (ERR_MALLOC);
 	}
- 	print_debugger(tokens, commands);
+	execute(commands, shell);
 	free_commands(&commands);
 	free_tokens(&tokens);
 	return (0);

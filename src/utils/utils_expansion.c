@@ -1,24 +1,12 @@
 #include "../../minishell.h"
 
-char *get_env_value(t_shell *shell, char *str)
+/*
+** expand_str : remplace $VAR et $? dans content, renvoie une chaine allouee.
+** get_env_value vit desormais dans exec/path.c (signature t_env *, char *).
+*/
+char	*expand_str(char *content, t_shell *shell)
 {
-    t_env *curr;
-    int i;
-
-    curr = shell->env;
-    while (curr)
-    {
-        i = 0;
-        while (curr->key[i] && str[i] && curr->key[i] == str[i])
-            i++;
-        if (curr->key[i] == '\0' && str[i] == '\0')
-            return (curr->value);
-        curr = curr->next;
-    }
-    return (NULL);
-}
-
-char  *expand_str(char *content, t_shell *shell)
-{
-    
+	(void)content;
+	(void)shell;
+	return (NULL);
 }
