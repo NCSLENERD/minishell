@@ -30,6 +30,7 @@ int	read_op(char *line, int *i, t_token **head)
 	t_type type;
 	t_type_redirect redir_type;
 
+	type = UNEXPECTED_S;
 	if (line[*i] == '>' || line[*i] == '<')
 		type = REDIRECT;
 	else if (line[*i] == '|')
@@ -41,12 +42,12 @@ int	read_op(char *line, int *i, t_token **head)
 	else if (line[*i] == ';')
 		type = UNEXPECTED_P;
 	redir_type = get_redir_type(line, i);
-	if (line[*i] == line[*i + 1])
+	if (line[*i] == line[*i + 1] && type != PIPE)
 		*i = *i + 1;
 	*i = *i + 1;
 	token = token_new(type);
-		if (!token)
-			return (ERR_MALLOC);
+	if (!token)
+		return (ERR_MALLOC);
 	token->redir_type = redir_type;
 	token_add_back(head, token);
 	return (0);
@@ -59,7 +60,7 @@ int	read_word(char *line, int *i, t_token **head)
 
 	token = token_new(MOT);
 	if (!token)
-			return (ERR_MALLOC);
+		return (ERR_MALLOC);
 	token_add_back(head, token);
 	while (line[*i] != '\0' && !is_operator(line[*i]) && !is_space(line[*i]))
 	{
