@@ -17,3 +17,8 @@ char *get_env_value(t_shell *shell, char *str)
     }
     return (NULL);
 }
+
+char  *expand_str(char *content, t_shell *shell)
+{
+    
+}
