@@ -31,7 +31,8 @@ SRCS = main.c \
 	exec/pipeline.c \
 	exec/builtins.c \
 	exec/builtin_echo.c \
-	exec/builtin_env.c
+	exec/builtin_env.c \
+	exec/builtin_exit.c
 
 OBJS = $(SRCS:.c=.o)
 

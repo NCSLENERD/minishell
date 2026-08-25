@@ -170,5 +170,10 @@ int	is_n_flag(char *s);
 int	builtin_echo(char **argv);
 int	builtin_pwd(void);
 int	builtin_env(t_env *env);
+int	builtin_exit(t_command *cmd, t_shell *shell);
+int	parse_exit_code(char *s, unsigned char *code);
+int	parse_sign(char *s, int *i);
+int	exit_error(char *arg);
+void	clean_exit(t_shell *shell, unsigned char code);
 #endif
  
