@@ -160,5 +160,7 @@ int	apply_redirs(t_redirect *redirs);
 void	child_pipe_setup(int prev_fd, int *fds, t_command *cmd);
 int	parent_pipe_setup(int prev_fd, int *fds, t_command *cmd);
 void	wait_all(pid_t last, t_shell *shell);
+pid_t	launch_command(t_command *cmd, t_shell *shell, int prev_fd, int *fds);
+int	nothing_to_do(t_command *cmds);
 #endif
  

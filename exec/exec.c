@@ -31,25 +31,43 @@ void	exec_child(t_command *cmd, t_shell *shell)
 	exit(execve_error(cmd->argv[0]));
 }
 
-int	execute(t_command *cmd, t_shell *shell)
+// Ligne vide, ou commande unique sans nom et sans redirection : rien
+// a lancer. Une redirection seule (> fichier) doit en revanche etre
+// executee, elle cree le fichier.
+int	nothing_to_do(t_command *cmds)
 {
-	pid_t	pid;
-	int		status;
-
-	if (!cmd || !cmd->argv)
-		return (0);
-	if (cmd->argv[0] == NULL && cmd->redirs == NULL)
-		return (0);
-	pid = fork();
-	if (pid == -1)
-	{
-		perror("minishell: fork");
+	if (cmds == NULL || cmds->argv == NULL)
 		return (1);
+	if (cmds->next == NULL && cmds->argv[0] == NULL && cmds->redirs == NULL)
+		return (1);
+	return (0);
+}
+
+// Lance les commandes du pipeline en parallele, puis les attend toutes.
+// Le pipe est cree avant le fork pour que les deux processus en heritent,
+// et seulement s'il reste une commande apres celle-ci.
+int	execute(t_command *cmds, t_shell *shell)
+{
+	t_command	*curr;
+	int			fds[2];
+	int			prev_fd;
+	pid_t		pid;
+
+	if (nothing_to_do(cmds))
+		return (0);
+	prev_fd = -1;
+	curr = cmds;
+	while (curr != NULL)
+	{
+		if (curr->next != NULL && pipe(fds) == -1)
+			return (cmd_error("pipe", strerror(errno), 1));
+		pid = launch_command(curr, shell, prev_fd, fds);
+		if (pid == -1)
+			return (1);
+		prev_fd = parent_pipe_setup(prev_fd, fds, curr);
+		curr = curr->next;
 	}
-	if (pid == 0)
-		exec_child(cmd, shell);
-	if (waitpid(pid, &status, 0) != -1)
-		set_exit_status(shell, status);
+	wait_all(pid, shell);
 	return (0);
 }
 
