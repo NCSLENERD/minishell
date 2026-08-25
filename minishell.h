@@ -157,5 +157,8 @@ int	execve_error(char *cmd);
 int	is_directory(char *path);
 int	open_redir(t_redirect *redir);
 int	apply_redirs(t_redirect *redirs);
+void	child_pipe_setup(int prev_fd, int *fds, t_command *cmd);
+int	parent_pipe_setup(int prev_fd, int *fds, t_command *cmd);
+void	wait_all(pid_t last, t_shell *shell);
 #endif
  
