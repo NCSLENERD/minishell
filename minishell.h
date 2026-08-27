@@ -97,12 +97,6 @@ typedef struct s_shell
 	//t_command *cmds;// CONFORT pour free en cas d'erreur 
 } t_shell;
 
-char	*ft_strdup(const char *s);
-size_t	ft_strlen(const char *str);
-char	*ft_itoa(int n);
-char	*ft_substr(char const *s, unsigned int start, size_t len);
-void	ft_putstr_fd(char *s, int fd);
-char	*ft_strchr(const char *s, int c);
 t_token *token_new(t_type type);
 t_piece *piece_new(t_quote quote);
 void	token_add_back(t_token **head, t_token *token);
@@ -129,7 +123,6 @@ void	free_argv(char **argv);
 int	check_syntax(t_token *tokens);
 char	*get_redir_symbol(t_type_redirect redir_type);
 int	calc_len_piece(t_piece *piece);
-char	*ft_strjoin(char const *s1, char const *s2);
 char	*piece_to_str(t_piece	*piece);
 void	piece_to_str2(t_piece *piece, char *str);
 void	print_pieces_of_token(t_token *token);
