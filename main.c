@@ -43,6 +43,11 @@ int	process_line(char *line, t_shell *shell)
 	ret = build_token(line, shell, &tokens);
 	if (ret != 0)
 		return (ret);
+	if (expand_tokens(tokens, shell) == ERR_MALLOC)
+	{
+		free_tokens(&tokens);
+		return (ERR_MALLOC);
+	}
 	if (parser(tokens, &commands) == ERR_MALLOC)
 	{
 		free_tokens(&tokens);

@@ -19,7 +19,10 @@ SRCS = main.c \
 	src/utils/utils_token.c \
 	src/utils/utils_parser.c \
 	src/utils/utils_parser2.c \
+	src/utils/utils_parser3.c \
+	src/utils/utils_parser4.c \
 	src/utils/utils_expansion.c \
+	src/utils/utils_expansion2.c \
 	exec/exec.c \
 	exec/env_tab.c \
 	exec/path.c \
