@@ -76,3 +76,20 @@ int	fields_to_argv(t_command *cmd, t_piece *fields)
 	cmd->argv[i] = NULL;
 	return (0);
 }
+
+int	handle_heredoc(t_redirect	*new, t_token *token)
+{
+	t_piece	*tmp;
+
+	new->target = piece_to_str(token->next->piece);
+	if (!new->target)
+		return (ERR_MALLOC);
+	tmp = token->next->piece;
+	while (tmp != NULL && new->flag_quote == 0)
+	{
+		if (tmp->quote != Q_NONE)
+			new->flag_quote = 1;
+		tmp = tmp->next;
+	}
+	return (0);
+}

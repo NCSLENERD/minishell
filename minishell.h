@@ -13,6 +13,7 @@
 # define MINISHELL_H
 # define ERR_SYNTAX 1
 # define ERR_MALLOC 2
+# define ERR_REDIR 3
 
 #include "libft/libft.h"
 #include <readline/readline.h>
@@ -60,6 +61,7 @@ typedef struct s_piece
 typedef	struct s_redirect
 {
 	t_type_redirect    type;
+	int	fd;
 	char	*target;
 	int		flag_quote;
 	struct s_redirect *next;
@@ -110,7 +112,7 @@ int	is_space(char c);
 int	read_op(char *line, int *i, t_token **head);
 int	read_word(char *line, int *i, t_token **head);
 int	read_piece(char *line, int *i, t_token *token);
-t_quote get_quote_type(char *line, int *i);
+t_quote	get_quote_type(char *line, int *i);
 int	quote_error(char *symbol);
 char	*get_quote_symbol(t_quote quote);
 void	free_commands(t_command **head);
@@ -135,6 +137,7 @@ char	*piece_to_str(t_piece	*piece);
 void	piece_to_str2(t_piece *piece, char *str);
 void	print_pieces_of_token(t_token *token); 
 int parser(t_token *tokens, t_command **head);
+int	handle_heredoc(t_redirect	*new, t_token *token);
 int	add_field(t_piece **fields, char *str);
 int	split_piece(char *content, t_piece **fields, char **acc, int *started);
 int	split_piece2(char *content, char **acc, int *started, int *i);

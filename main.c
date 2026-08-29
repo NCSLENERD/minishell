@@ -32,6 +32,25 @@ int	build_token(char *line, t_shell *shell, t_token	**tokens)
 	return (0);
 }
 
+int	parse_token(t_shell *shell, t_token	**tokens, t_command	**commands)
+{
+	int	ret;
+
+	ret = parser(*tokens, commands);
+	if (ret == ERR_REDIR)
+	{
+		shell->exit_code = 1;
+		free_tokens(tokens);
+		return (ERR_REDIR);
+	}
+	else if (ret == ERR_MALLOC)
+	{
+		free_tokens(tokens);
+		return (ret);
+	}
+	return (0);
+}
+
 int	process_line(char *line, t_shell *shell)
 {
 	t_token	*tokens;
@@ -48,11 +67,9 @@ int	process_line(char *line, t_shell *shell)
 		free_tokens(&tokens);
 		return (ERR_MALLOC);
 	}
-	if (parser(tokens, &commands) == ERR_MALLOC)
-	{
-		free_tokens(&tokens);
-		return (ERR_MALLOC);
-	}
+	ret = parse_token(shell, &tokens, &commands);
+	if (ret != 0)
+		return (ret);
 	execute(commands, shell);
 	free_commands(&commands);
 	free_tokens(&tokens);
