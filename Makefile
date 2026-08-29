@@ -34,6 +34,7 @@ SRCS = main.c \
 	exec/builtin_env.c \
 	exec/builtin_exit.c \
 	exec/heredoc.c \
+	exec/heredoc2.c \
 	exec/env_set.c \
 	exec/builtin_cd.c
 

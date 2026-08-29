@@ -38,29 +38,29 @@ int	write_heredoc_line(int fd, char *line, t_redirect *redir, t_shell *shell)
 
 int	read_heredoc(t_redirect *redir, t_shell *shell)
 {
-	int		p[2];
-	char	*line;
+	char	*path;
+	int		fd;
+	int		ret;
 
-	if (pipe(p) == -1)
-		return (cmd_error("heredoc", strerror(errno), ERR_MALLOC));
-	line = readline("> ");
-	while (line != NULL && is_delimiter(line, redir->target) == 0)
+	path = heredoc_path();
+	if (path == NULL)
+		return (ERR_MALLOC);
+	fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+	if (fd == -1)
 	{
-		if (write_heredoc_line(p[1], line, redir, shell) != 0)
-		{
-			free(line);
-			close(p[0]);
-			close(p[1]);
-			return (ERR_MALLOC);
-		}
-		free(line);
-		line = readline("> ");
+		free(path);
+		return (cmd_error("heredoc", strerror(errno), ERR_MALLOC));
 	}
-	if (line == NULL)
-		heredoc_warning(redir->target);
-	free(line);
-	close(p[1]);
-	redir->fd = p[0];
+	ret = fill_heredoc(fd, redir, shell);
+	close(fd);
+	if (ret == 0)
+		redir->fd = open(path, O_RDONLY);
+	unlink(path);
+	free(path);
+	if (ret != 0)
+		return (ret);
+	if (redir->fd == -1)
+		return (cmd_error("heredoc", strerror(errno), ERR_MALLOC));
 	return (0);
 }
 
