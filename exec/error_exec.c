@@ -45,3 +45,11 @@ int	execve_error(char *cmd)
 		return (cmd_error(cmd, "No such file or directory", 127));
 	return (cmd_error(cmd, strerror(errno), 1));
 }
+
+void	heredoc_warning(char *delim)
+{
+	ft_putstr_fd("minishell: warning: here-document delimited by ", 2);
+	ft_putstr_fd("end-of-file (wanted `", 2);
+	ft_putstr_fd(delim, 2);
+	ft_putstr_fd("')\n", 2);
+}

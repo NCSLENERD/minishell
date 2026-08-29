@@ -32,7 +32,8 @@ SRCS = main.c \
 	exec/builtins.c \
 	exec/builtin_echo.c \
 	exec/builtin_env.c \
-	exec/builtin_exit.c
+	exec/builtin_exit.c \
+	exec/heredoc.c
 
 OBJS = $(SRCS:.c=.o)
 

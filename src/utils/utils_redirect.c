@@ -21,6 +21,7 @@ t_redirect *redirect_new(t_type_redirect type)
 	new->type = type;
 	new->target = NULL;
 	new->flag_quote = 0;
+	new->fd = -1;
 	new->next = NULL;
 	return (new);
 }

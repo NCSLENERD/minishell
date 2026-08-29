@@ -187,5 +187,11 @@ int	parse_exit_code(char *s, unsigned char *code);
 int	parse_sign(char *s, int *i);
 int	exit_error(char *arg);
 void	clean_exit(t_shell *shell, unsigned char code);
+int	collect_heredocs(t_command *cmds, t_shell *shell);
+int	read_heredoc(t_redirect *redir, t_shell *shell);
+int	is_delimiter(char *line, char *delim);
+int	write_heredoc_line(int fd, char *line, t_redirect *redir, t_shell *shell);
+void	close_heredocs(t_command *cmds);
+void	heredoc_warning(char *delim);
 #endif
  

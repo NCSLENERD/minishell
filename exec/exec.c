@@ -44,14 +44,19 @@ int	nothing_to_do(t_command *cmds)
 
 int	execute(t_command *cmds, t_shell *shell)
 {
+	int	ret;
+
 	if (nothing_to_do(cmds))
 		return (0);
+	if (collect_heredocs(cmds, shell) != 0)
+		return (ERR_MALLOC);
+	ret = 0;
 	if (cmds->next == NULL && is_builtin(cmds->argv[0]))
-	{
 		shell->exit_code = run_builtin_parent(cmds, shell);
-		return (0);
-	}
-	return (run_pipeline(cmds, shell));
+	else
+		ret = run_pipeline(cmds, shell);
+	close_heredocs(cmds);
+	return (ret);
 }
 
 void	set_exit_status(t_shell *shell, int status)

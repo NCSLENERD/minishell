@@ -31,6 +31,8 @@ int	open_redir(t_redirect *redir)
 		fd = open(redir->target, O_WRONLY | O_CREAT | O_APPEND, 0644);
 		return (fd);
 	}
+	if (redir->type == R_HEREDOC)
+		return (redir->fd);
 	return (-1);
 }
 
@@ -50,6 +52,8 @@ int	apply_redirs(t_redirect *redirs)
 		else
 			dup2(fd, STDOUT_FILENO);
 		close(fd);
+		if (curr->type == R_HEREDOC)
+			curr->fd = -1;
 		curr = curr->next;
 	}
 	return (0);
