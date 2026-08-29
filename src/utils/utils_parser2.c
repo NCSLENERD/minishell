@@ -28,19 +28,26 @@ int	calc_len_piece(t_piece *piece)
 
 char	*piece_to_str(t_piece	*piece)
 {
-	int	i;
-	int	j;
 	int	len;
-	t_piece	*curr;
 	char	*str;
 
-	curr = piece;
-	i = 0;
-	j = 0;
 	len = calc_len_piece(piece);
 	str = malloc(sizeof(char) * (len + 1));
 	if (!str)
 		return (NULL);
+	piece_to_str2(piece, str);
+	return (str);
+}
+
+void	piece_to_str2(t_piece *piece,  char *str)
+{
+	int	i;
+	int	j;
+	t_piece *curr;
+
+	i = 0;
+	j = 0;
+	curr = piece;
 	while (curr != NULL)
 	{
 		while (curr->content[j] != '\0')
@@ -53,5 +60,4 @@ char	*piece_to_str(t_piece	*piece)
 		curr = curr->next;
 	}
 	str[i] = '\0';
-	return (str);
 }

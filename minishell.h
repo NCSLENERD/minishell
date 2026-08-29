@@ -13,6 +13,7 @@
 # define MINISHELL_H
 # define ERR_SYNTAX 1
 # define ERR_MALLOC 2
+# define ERR_REDIR 3
 
 #include "libft/libft.h"
 #include <readline/readline.h>
@@ -60,6 +61,7 @@ typedef struct s_piece
 typedef	struct s_redirect
 {
 	t_type_redirect    type;
+	int	fd;
 	char	*target;
 	int		flag_quote;
 	struct s_redirect *next;
@@ -97,11 +99,6 @@ typedef struct s_shell
 	//t_command *cmds;// CONFORT pour free en cas d'erreur 
 } t_shell;
 
-char	*ft_strdup(const char *s);
-size_t	ft_strlen(const char *str);
-char	*ft_substr(char const *s, unsigned int start, size_t len);
-void	ft_putstr_fd(char *s, int fd);
-char	*ft_strchr(const char *s, int c);
 t_token *token_new(t_type type);
 t_piece *piece_new(t_quote quote);
 void	token_add_back(t_token **head, t_token *token);
@@ -115,7 +112,7 @@ int	is_space(char c);
 int	read_op(char *line, int *i, t_token **head);
 int	read_word(char *line, int *i, t_token **head);
 int	read_piece(char *line, int *i, t_token *token);
-t_quote get_quote_type(char *line, int *i);
+t_quote	get_quote_type(char *line, int *i);
 int	quote_error(char *symbol);
 char	*get_quote_symbol(t_quote quote);
 void	free_commands(t_command **head);
@@ -124,16 +121,31 @@ void	command_add_back(t_command **head, t_command *command);
 void	redirect_add_back(t_redirect **head, t_redirect *redirect);
 t_redirect *redirect_new(t_type_redirect type);
 t_command *command_new();
+int	is_expandable(char *content, int i);
+char	*expand_append(char *s1, char *s2);
+char	*expand_str(char *content, t_shell *shell);
+char	*expand_code(t_shell *shell, int *i, char *acc);
+char	*expand_var(char *content, t_shell *shell, int *i, char *acc);
+char	*expand_litteral(char *content, int *i, char *acc);
+int	expand_tokens(t_token *tokens, t_shell *shell);
+int	expand_piece(t_piece *piece, t_shell *shell);
 void	free_argv(char **argv);
 int	check_syntax(t_token *tokens);
 char	*get_redir_symbol(t_type_redirect redir_type);
 int	calc_len_piece(t_piece *piece);
-char	*ft_strjoin(char const *s1, char const *s2);
 char	*piece_to_str(t_piece	*piece);
-void	print_pieces_of_token(t_token *token);
+void	piece_to_str2(t_piece *piece, char *str);
+void	print_pieces_of_token(t_token *token); 
 int parser(t_token *tokens, t_command **head);
+int	handle_heredoc(t_redirect	*new, t_token *token);
+int	add_field(t_piece **fields, char *str);
+int	split_piece(char *content, t_piece **fields, char **acc, int *started);
+int	split_piece2(char *content, char **acc, int *started, int *i);
+int	split_piece3(t_piece **fields, char **acc, int *started);
+int	split_word(t_token *token, t_piece **fields);
+int	count_fields(t_piece *fields);
+int	fields_to_argv(t_command *cmd, t_piece *fields);
 void	print_commands(t_command *commands);
-int	count_argv(t_token *tokens);
 int	fill_command(t_token **tokens, t_command *cmd);
 void	print_debugger(t_token *tokens, t_command *commands);
 int	init_env(char **envp, t_env **head);

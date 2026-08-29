@@ -14,6 +14,7 @@
 int	parser(t_token *tokens, t_command **head)
 {
 	t_command	*tmp;
+	int	ret;
 
 	while (tokens != NULL)
 	{
@@ -24,10 +25,11 @@ int	parser(t_token *tokens, t_command **head)
 			return (ERR_MALLOC);
 		}
 		command_add_back(head, tmp);
-		if (fill_command(&tokens, tmp) == ERR_MALLOC)
+		ret = fill_command(&tokens, tmp);
+		if (ret != 0)
 		{
 			free_commands(head);
-			return (ERR_MALLOC);
+			return (ret);
 		}
 		if (tokens != NULL)
 			tokens = tokens->next;
@@ -35,62 +37,65 @@ int	parser(t_token *tokens, t_command **head)
 	return (0);
 }
 
-int	count_argv(t_token *tokens)
+int	add_redirect2(t_token *token, t_piece **fields)
 {
-	int	count;
-
-	count = 0;
-	while (tokens != NULL && tokens->type != PIPE)
-	{
-		if (tokens->type == REDIRECT)
-			tokens = tokens->next;
-		else
-			count++;
-		tokens = tokens->next;
-	}
-	return (count);
+	if (split_word(token->next, fields) == ERR_MALLOC)
+		return (ERR_MALLOC);
+	if (count_fields(*fields) != 1)
+		return (cmd_error(get_redir_symbol(token->redir_type), 
+	"ambiguous redirect", ERR_REDIR));
+	return (0);
 }
 
 int	add_redirect(t_token *token, t_command *command)
 {
-	t_redirect *new;
-	t_piece	*tmp;
+	t_redirect	*new;
+	t_piece	*fields;
+	int	ret;
 
+	fields = NULL;
 	new = redirect_new(token->redir_type);
 	if (!new)
 		return (ERR_MALLOC);
 	redirect_add_back(&command->redirs, new);
-	new->target = piece_to_str(token->next->piece);
-	if (!new->target)
-		return (ERR_MALLOC);
-	tmp = token->next->piece;
-	while (tmp != NULL && new->flag_quote == 0)
+	if (token->redir_type == R_HEREDOC)
 	{
-		if (tmp->quote != Q_NONE)
-			new->flag_quote = 1;
-		tmp = tmp->next;
+		if (handle_heredoc(new, token) == ERR_MALLOC)
+			return (ERR_MALLOC);
+		return (0);
 	}
+	ret = add_redirect2(token, &fields);
+	if (ret != 0)
+	{
+		free_pieces(fields);
+		return (ret);
+	}
+	new->target = fields->content;
+	fields->content = NULL;
+	free_pieces(fields);
 	return (0);
 }
-int	fill_command2(t_token **tokens, t_command *cmd, int *i)
+
+int	fill_command2(t_token **tokens, t_command *cmd, t_piece **fields)
 {
 	t_token	*curr_token;
+	int	ret;
 
 	curr_token = *tokens;
 	while (curr_token != NULL && curr_token->type != PIPE)
 	{
 		if (curr_token->type == REDIRECT)
 		{
-			if(add_redirect(curr_token, cmd) != 0)
-				return (ERR_MALLOC);
+			ret = add_redirect(curr_token, cmd);
+			if (ret != 0)
+				return (ret);
 			curr_token = curr_token->next;
 		}
 		else
 		{
-			cmd->argv[*i] = piece_to_str(curr_token->piece);
-			if (!cmd->argv[*i])
-				return (ERR_MALLOC);
-			*i = *i + 1;
+			ret = split_word(curr_token, fields);
+			if (ret != 0)
+				return (ret);
 		}
 		curr_token = curr_token->next;
 	}
@@ -100,21 +105,24 @@ int	fill_command2(t_token **tokens, t_command *cmd, int *i)
 
 int	fill_command(t_token **tokens, t_command *cmd)
 {
-	int	count;
-	int	i;
+	t_piece	*fields;
+	int	ret;	
 
-	i = 0;
-	count = count_argv(*tokens);
-	cmd->argv = malloc(sizeof(char *) * (count + 1));
-	if (!cmd->argv)
-		return (ERR_MALLOC);
-	while(i <= count)
+	fields = NULL;
+	ret = fill_command2(tokens, cmd, &fields);
+	if (ret != 0)
 	{
-		cmd->argv[i] = NULL;
-		i++;
+		free_pieces(fields);
+		return (ret);
 	}
-	i = 0;
-	return (fill_command2(tokens, cmd, &i));
+	ret = fields_to_argv(cmd, fields);
+	if (ret != 0)
+	{
+		free_pieces(fields);
+		return (ret);
+	}
+	free_pieces(fields);
+	return (0);
 }
 
-// > out echo hi
+

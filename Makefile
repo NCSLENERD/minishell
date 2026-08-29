@@ -9,10 +9,6 @@ SRCS = main.c \
 	lexer.c \
 	parser.c \
 	debug.c \
-	src/minilibft/ft_substr.c \
-	src/minilibft/ft_strchr.c \
-	src/minilibft/ft_putstr_fd.c \
-	src/minilibft/ft_strjoin.c \
 	src/utils/utils_env.c \
 	src/utils/utils_envp.c \
 	src/utils/utils_command.c \
@@ -23,6 +19,10 @@ SRCS = main.c \
 	src/utils/utils_token.c \
 	src/utils/utils_parser.c \
 	src/utils/utils_parser2.c \
+	src/utils/utils_parser3.c \
+	src/utils/utils_parser4.c \
+	src/utils/utils_expansion.c \
+	src/utils/utils_expansion2.c \
 	exec/exec.c \
 	exec/env_tab.c \
 	exec/path.c \
