@@ -198,5 +198,13 @@ int	is_delimiter(char *line, char *delim);
 int	write_heredoc_line(int fd, char *line, t_redirect *redir, t_shell *shell);
 void	close_heredocs(t_command *cmds);
 void	heredoc_warning(char *delim);
+char	*heredoc_path(void);
+int	fill_heredoc(int fd, t_redirect *redir, t_shell *shell);
+int	set_env_value(t_env **env, char *key, char *value);
+int	add_new_env(t_env **env, char *key, char *value);
+int	builtin_cd(t_command *cmd, t_shell *shell);
+char	*get_cd_target(t_command *cmd, t_shell *shell);
+int	update_pwd(t_shell *shell, char *oldpwd);
+int	cd_error(char *arg, char *msg);
 #endif
  
