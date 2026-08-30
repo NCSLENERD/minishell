@@ -63,6 +63,7 @@ char	*trad_backslash(char *content)
 			i++;
 		}
 	}
+	res[j] = '\0';
 	return (res);
 }
 
