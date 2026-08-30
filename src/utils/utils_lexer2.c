@@ -25,11 +25,11 @@ int	is_operator(char c)
 	return (0);
 }
 
-t_quote get_quote_type(char *line, int *i)
+t_quote get_quote_type(char *line, int i)
 {
-	if (line[*i] == '"')
+	if (line[i] == '"')
 		return (Q_DOUBLE);
-	else if (line[*i] == '\'')
+	else if (line[i] == '\'')
 		return (Q_SINGLE);
 	return (Q_NONE);	
 }

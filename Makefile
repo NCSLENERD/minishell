@@ -14,6 +14,8 @@ SRCS = main.c \
 	src/utils/utils_command.c \
 	src/utils/utils_lexer.c \
 	src/utils/utils_lexer2.c \
+	src/utils/utils_lexer3.c \
+	src/utils/utils_lexer4.c \
 	src/utils/utils_redirect.c \
 	src/utils/utils_piece.c \
 	src/utils/utils_token.c \
