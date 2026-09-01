@@ -45,11 +45,19 @@ int	nothing_to_do(t_command *cmds)
 int	execute(t_command *cmds, t_shell *shell)
 {
 	int	ret;
+	int	ret_collect;
 
 	if (nothing_to_do(cmds))
 		return (0);
-	if (collect_heredocs(cmds, shell) != 0)
-		return (ERR_MALLOC);
+	ret_collect = collect_heredocs(cmds, shell);
+	if (ret_collect == CANCEL_HEREDOC)
+	{
+		shell->exit_code = 128 + SIGINT;
+		close_heredocs(cmds);
+		return (0);
+	}	
+	if (ret_collect != 0)
+		return (ret_collect);
 	ret = 0;
 	if (cmds->next == NULL && is_builtin(cmds->argv[0]))
 		shell->exit_code = run_builtin_parent(cmds, shell);
@@ -64,5 +72,11 @@ void	set_exit_status(t_shell *shell, int status)
 	if (WIFEXITED(status))
 		shell->exit_code = WEXITSTATUS(status);
 	else if (WIFSIGNALED(status))
+	{
 		shell->exit_code = 128 + WTERMSIG(status);
+		if (WTERMSIG(status) == SIGINT)
+			write(1, "\n", 1);
+		else if (WTERMSIG(status) == SIGQUIT)
+			write(1, "Quit: 3\n", 8);
+	}
 }

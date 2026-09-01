@@ -14,6 +14,7 @@
 # define ERR_SYNTAX 1
 # define ERR_MALLOC 2
 # define ERR_REDIR 3
+# define CANCEL_HEREDOC 4
 
 #include "libft/libft.h"
 #include <readline/readline.h>
@@ -24,6 +25,15 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <signal.h>
+
+extern volatile sig_atomic_t  g_signal;
+
+void    handle_sigint(int sig);
+void    setup_signals_prompt(void);
+void	signals_child_default(void);
+void	signals_parent_waiting(void);
+void    signals_heredoc(void);
 
 typedef enum e_type
 {
@@ -194,6 +204,8 @@ int	exit_error(char *arg);
 void	clean_exit(t_shell *shell, unsigned char code);
 int	collect_heredocs(t_command *cmds, t_shell *shell);
 int	read_heredoc(t_redirect *redir, t_shell *shell);
+int	fork_heredoc(t_redirect *redir, t_shell *shell, int fd);
+int	heredoc_result(int status);
 int	is_delimiter(char *line, char *delim);
 int	write_heredoc_line(int fd, char *line, t_redirect *redir, t_shell *shell);
 void	close_heredocs(t_command *cmds);

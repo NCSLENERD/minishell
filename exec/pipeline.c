@@ -48,6 +48,7 @@ int	run_pipeline(t_command *cmds, t_shell *shell)
 
 	prev_fd = -1;
 	curr = cmds;
+	signals_parent_waiting();
 	while (curr != NULL)
 	{
 		if (curr->next != NULL && pipe(fds) == -1)
@@ -57,8 +58,9 @@ int	run_pipeline(t_command *cmds, t_shell *shell)
 			return (1);
 		prev_fd = parent_pipe_setup(prev_fd, fds, curr);
 		curr = curr->next;
-	}
+	}	
 	wait_all(pid, shell);
+	setup_signals_prompt();
 	return (0);
 }
 
@@ -75,6 +77,7 @@ pid_t	launch_command(t_command *cmd, t_shell *shell, int prev_fd, int *fds)
 	if (pid == 0)
 	{
 		child_pipe_setup(prev_fd, fds, cmd);
+		signals_child_default();
 		exec_child(cmd, shell);
 	}
 	return (pid);

@@ -1,7 +1,7 @@
 NAME = minishell
 CC = cc
-CFLAGS = -Wall -Wextra -Werror
-CLIBS =  -lreadline
+CFLAGS = -Wall -Wextra -Werror -I/usr/local/opt/readline/include
+CLIBS =  -lreadline -L/usr/local/opt/readline/lib
 LIBFT_DIR = libft
 LIBFT = $(LIBFT_DIR)/libft.a
 
@@ -25,6 +25,7 @@ SRCS = main.c \
 	src/utils/utils_parser4.c \
 	src/utils/utils_expansion.c \
 	src/utils/utils_expansion2.c \
+	src/utils/signal.c \
 	exec/exec.c \
 	exec/env_tab.c \
 	exec/path.c \

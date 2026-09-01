@@ -51,8 +51,7 @@ int	read_heredoc(t_redirect *redir, t_shell *shell)
 		free(path);
 		return (cmd_error("heredoc", strerror(errno), ERR_MALLOC));
 	}
-	ret = fill_heredoc(fd, redir, shell);
-	close(fd);
+	ret = fork_heredoc(redir, shell, fd);
 	if (ret == 0)
 		redir->fd = open(path, O_RDONLY);
 	unlink(path);
@@ -68,6 +67,7 @@ int	collect_heredocs(t_command *cmds, t_shell *shell)
 {
 	t_command	*cmd;
 	t_redirect	*redir;
+	int	ret_read;
 
 	cmd = cmds;
 	while (cmd != NULL)
@@ -75,8 +75,12 @@ int	collect_heredocs(t_command *cmds, t_shell *shell)
 		redir = cmd->redirs;
 		while (redir != NULL)
 		{
-			if (redir->type == R_HEREDOC && read_heredoc(redir, shell) != 0)
-				return (ERR_MALLOC);
+			if (redir->type == R_HEREDOC)
+			{
+				ret_read = read_heredoc(redir, shell);
+				if (ret_read != 0)
+					return (ret_read);
+			}
 			redir = redir->next;
 		}
 		cmd = cmd->next;

@@ -45,3 +45,43 @@ int	fill_heredoc(int fd, t_redirect *redir, t_shell *shell)
 	free(line);
 	return (0);
 }
+
+int	fork_heredoc(t_redirect *redir, t_shell *shell, int fd)
+{
+	int		status;
+	pid_t	pid;
+	int		ret;
+
+	signals_parent_waiting();
+	pid = fork();
+	if (pid == -1)
+	{
+		perror("minishell: fork");
+		return (-1);
+	}
+	if (pid == 0)
+	{
+		signals_heredoc();
+		ret = fill_heredoc(fd, redir, shell);
+		close(fd);
+		exit(ret);
+	}
+	close(fd);
+	waitpid(pid, &status, 0);
+	setup_signals_prompt();
+	ret = heredoc_result(status);
+	return (ret);
+}
+
+int	heredoc_result(int status)
+{
+	int	ret;
+
+	ret = 0;
+	if (WIFSIGNALED(status) && WTERMSIG(status) == SIGINT)
+		ret = CANCEL_HEREDOC;
+	else if (WIFEXITED(status))
+		ret = WEXITSTATUS(status);
+	return (ret);
+}
+

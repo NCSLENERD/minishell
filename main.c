@@ -83,6 +83,11 @@ void	shell_loop(t_shell *shell)
 	while(1)
 	{
 		line = readline("minishell$ ");
+		if(g_signal != 0)
+		{
+			shell->exit_code = 128 + g_signal;
+			g_signal = 0;
+		}
 		if (line == NULL)
 		{
 			printf("exit\n");
@@ -113,6 +118,7 @@ int	main(int argc, char **argv, char **envp)
 		ft_putstr_fd("minishell: allocation error\n",2);
 		return (1);
 	}
+	setup_signals_prompt();
 	shell_loop(&shell);
 	free_env(&shell.env);
 	return (shell.exit_code);
