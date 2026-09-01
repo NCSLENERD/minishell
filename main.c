@@ -70,10 +70,10 @@ int	process_line(char *line, t_shell *shell)
 	ret = parse_token(shell, &tokens, &commands);
 	if (ret != 0)
 		return (ret);
-	execute(commands, shell);
+	ret = execute(commands, shell);
 	free_commands(&commands);
 	free_tokens(&tokens);
-	return (0);
+	return (ret);
 }
 
 void	shell_loop(t_shell *shell)

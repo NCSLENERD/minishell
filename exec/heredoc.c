@@ -49,7 +49,7 @@ int	read_heredoc(t_redirect *redir, t_shell *shell)
 	if (fd == -1)
 	{
 		free(path);
-		return (cmd_error("heredoc", strerror(errno), ERR_MALLOC));
+		return (cmd_error("heredoc", strerror(errno), 1));
 	}
 	ret = fork_heredoc(redir, shell, fd);
 	if (ret == 0)
@@ -59,7 +59,7 @@ int	read_heredoc(t_redirect *redir, t_shell *shell)
 	if (ret != 0)
 		return (ret);
 	if (redir->fd == -1)
-		return (cmd_error("heredoc", strerror(errno), ERR_MALLOC));
+		return (cmd_error("heredoc", strerror(errno), 1));
 	return (0);
 }
 
