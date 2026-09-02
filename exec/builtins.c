@@ -26,6 +26,8 @@ int	is_builtin(char *name)
 		return (1);
 	if (ft_strncmp(name, "cd", 3) == 0)
 		return (1);
+	if (ft_strncmp(name, "export", 7) == 0)
+		return (1);
 	return (0);
 }
 
@@ -60,5 +62,7 @@ int	run_builtin(t_command *cmd, t_shell *shell)
 		return (builtin_exit(cmd, shell));
 	if (ft_strncmp(cmd->argv[0], "cd", 3) == 0)
 		return (builtin_cd(cmd, shell));
+	if (ft_strncmp(cmd->argv[0], "export", 7) == 0)
+		return (builtin_export(cmd, shell));
 	return (0);
 }

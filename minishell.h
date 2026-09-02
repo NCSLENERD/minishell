@@ -215,8 +215,17 @@ int	fill_heredoc(int fd, t_redirect *redir, t_shell *shell);
 int	set_env_value(t_env **env, char *key, char *value);
 int	add_new_env(t_env **env, char *key, char *value);
 int	builtin_cd(t_command *cmd, t_shell *shell);
+int builtin_export(t_command *cmd, t_shell *shell);
 char	*get_cd_target(t_command *cmd, t_shell *shell);
 int	update_pwd(t_shell *shell, char *oldpwd);
 int	cd_error(char *arg, char *msg);
+int is_valid_identifier(char *arg);
+t_env   *find_env_key(t_env **env, char *key);
+int export_one(char *arg, t_shell *shell);
+int export_error(char *arg);
+int	count_env_var_exported(t_env *env);
+int	print_export(t_env *env);
+t_env   **fill_env_tab_var_exported(t_env *env);
+int export_one2(t_shell *shell, char *key);
 #endif
  
