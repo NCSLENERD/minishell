@@ -228,5 +228,8 @@ int	print_export(t_env *env);
 t_env   **fill_env_tab_var_exported(t_env *env);
 int export_one2(t_shell *shell, char *key);
 int	builtin_unset(t_command *cmd, t_shell *shell);
+void remove_env_key(t_env **env, char *key);
+int unset_error(char *arg);
+void    free_curr(t_env *curr);
 #endif
  
