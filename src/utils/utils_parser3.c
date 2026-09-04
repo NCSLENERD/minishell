@@ -1,3 +1,14 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   utils_parser3.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: nmayela <nmayela@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/09/04 12:00:00 by nmayela           #+#    #+#             */
+/*   Updated: 2026/09/04 12:00:00 by nmayela          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #include "../../minishell.h"
 
 int	add_field(t_piece **fields, char *str)
@@ -17,7 +28,7 @@ int	add_field(t_piece **fields, char *str)
 
 int	split_piece2(char *content, char **acc, int *started, int *i)
 {
-	int start;
+	int		start;
 	char	*slice;
 
 	start = *i;
@@ -27,7 +38,7 @@ int	split_piece2(char *content, char **acc, int *started, int *i)
 	if (!slice)
 	{
 		free(*acc);
-		*acc= NULL;
+		*acc = NULL;
 		return (ERR_MALLOC);
 	}
 	*acc = expand_append(*acc, slice);
@@ -70,10 +81,9 @@ int	split_piece(char *content, t_piece **fields, char **acc, int *started)
 		}
 		else
 		{
-			if(split_piece2(content,acc, started, &i) == ERR_MALLOC)
+			if (split_piece2(content, acc, started, &i) == ERR_MALLOC)
 				return (ERR_MALLOC);
 		}
 	}
 	return (0);
 }
-

@@ -1,8 +1,19 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   utils_expansion2.c                                 :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: nmayela <nmayela@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/09/04 12:00:00 by nmayela           #+#    #+#             */
+/*   Updated: 2026/09/04 12:00:00 by nmayela          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #include "../../minishell.h"
 
 char	*expand_code(t_shell *shell, int *i, char *acc)
 {
-	char    *stock;
+	char	*stock;
 
 	stock = ft_itoa(shell->exit_code);
 	acc = expand_append(acc, stock);
@@ -16,7 +27,7 @@ char	*expand_code(t_shell *shell, int *i, char *acc)
 char	*expand_var(char *content, t_shell *shell, int *i, char *acc)
 {
 	char	*stock;
-	int	start;
+	int		start;
 
 	*i = *i + 1;
 	start = *i;
@@ -37,7 +48,7 @@ char	*expand_var(char *content, t_shell *shell, int *i, char *acc)
 
 char	*expand_litteral(char *content, int *i, char *acc)
 {
-	int	start;
+	int		start;
 	char	*stock;
 
 	start = *i;
@@ -58,7 +69,7 @@ char	*expand_litteral(char *content, int *i, char *acc)
 
 char	*expand_str(char *content, t_shell *shell)
 {
-	int	i;
+	int		i;
 	char	*acc;
 
 	acc = ft_strdup("");
@@ -70,14 +81,14 @@ char	*expand_str(char *content, t_shell *shell)
 		if (is_expandable(content, i))
 		{
 			if (content[i + 1] == '?')
-            	acc = expand_code(shell, &i, acc);
+				acc = expand_code(shell, &i, acc);
 			else if (ft_isalpha(content[i + 1]) || content[i + 1] == '_')
-			 	acc = expand_var(content, shell, &i, acc);
+				acc = expand_var(content, shell, &i, acc);
 		}
-		else 
+		else
 			acc = expand_litteral(content, &i, acc);
 		if (!acc)
 			return (NULL);
-	}  
+	}
 	return (acc);
 }

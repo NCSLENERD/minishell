@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 #include "../../minishell.h"
 
-t_type_redirect get_redir_type(char *line, int *i)
+t_type_redirect	get_redir_type(char *line, int *i)
 {
 	if (line[*i] == '>' && line[*i + 1] == '>')
 		return (R_APPEND);
@@ -21,14 +21,14 @@ t_type_redirect get_redir_type(char *line, int *i)
 		return (R_OUT);
 	else if (line[*i] == '<')
 		return (R_IN);
-	return (R_NONE);	
+	return (R_NONE);
 }
 
 int	read_op(char *line, int *i, t_token **head)
 {
-	t_token *token;
-	t_type type;
-	t_type_redirect redir_type;
+	t_token			*token;
+	t_type			type;
+	t_type_redirect	redir_type;
 
 	type = UNEXPECTED_S;
 	if (line[*i] == '>' || line[*i] == '<')
@@ -56,7 +56,7 @@ int	read_op(char *line, int *i, t_token **head)
 int	read_word(char *line, int *i, t_token **head)
 {
 	t_token	*token;
-	int	ret;
+	int		ret;
 
 	token = token_new(MOT);
 	if (!token)
@@ -77,10 +77,9 @@ int	is_end_of_piece(char c, t_quote quote, int *i, char *line)
 		return (1);
 	else if (c == '"' && quote == Q_DOUBLE)
 		return (1);
-	else if ((c == '\0' || c == '"' || c == '\'' || is_operator(c) || 
-	is_space(c) || is_dollar_open(*i, line) ) 
-	&& quote == Q_NONE)
+	else if ((c == '\0' || c == '"' || c == '\'' || is_operator(c)
+			|| is_space(c) || is_dollar_open(*i, line))
+		&& quote == Q_NONE)
 		return (1);
 	return (0);
 }
-

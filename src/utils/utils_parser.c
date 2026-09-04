@@ -26,8 +26,8 @@ char	*get_redir_symbol(t_type_redirect redir_type)
 
 char	*token_symbol(t_token *token)
 {
-	t_type type;
-	t_type_redirect redir_type;
+	t_type			type;
+	t_type_redirect	redir_type;
 
 	type = token->type;
 	redir_type = token->redir_type;
@@ -35,11 +35,11 @@ char	*token_symbol(t_token *token)
 		return (get_redir_symbol(redir_type));
 	else if (type == PIPE)
 		return ("|");
-	else if	(type == UNEXPECTED_D)
+	else if (type == UNEXPECTED_D)
 		return ("&&");
-	else if	(type == UNEXPECTED_S)
+	else if (type == UNEXPECTED_S)
 		return ("&");
-	else if	(type == UNEXPECTED_P)
+	else if (type == UNEXPECTED_P)
 		return (";");
 	return (NULL);
 }
@@ -54,16 +54,16 @@ int	syntax_error(char *symbol)
 
 int	check_syntax(t_token *tokens)
 {
-	t_token *curr;
+	t_token	*curr;
 
-	if	(tokens == NULL)
+	if (tokens == NULL)
 		return (0);
 	if (tokens->type == PIPE)
 		return (syntax_error(token_symbol(tokens)));
 	curr = tokens;
 	while (curr != NULL)
 	{
-		if (curr->type == UNEXPECTED_D || curr->type == UNEXPECTED_S 
+		if (curr->type == UNEXPECTED_D || curr->type == UNEXPECTED_S
 			|| curr->type == UNEXPECTED_P)
 			return (syntax_error(token_symbol(curr)));
 		else if (curr->type == PIPE && curr->next == NULL)
@@ -77,4 +77,4 @@ int	check_syntax(t_token *tokens)
 		curr = curr->next;
 	}
 	return (0);
-}	
+}

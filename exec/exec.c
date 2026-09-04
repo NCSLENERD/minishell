@@ -55,7 +55,7 @@ int	execute(t_command *cmds, t_shell *shell)
 		shell->exit_code = 128 + SIGINT;
 		close_heredocs(cmds);
 		return (0);
-	}	
+	}
 	if (ret_collect != 0)
 		return (ret_collect);
 	ret = 0;

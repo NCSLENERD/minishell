@@ -1,8 +1,19 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   utils_command.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: nmayela <nmayela@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/09/04 12:00:00 by nmayela           #+#    #+#             */
+/*   Updated: 2026/09/04 12:00:00 by nmayela          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #include "../../minishell.h"
 
-t_command *command_new()
+t_command	*command_new(void)
 {
-	t_command *new;
+	t_command	*new;
 
 	new = malloc(sizeof(t_command));
 	if (!new)
@@ -16,8 +27,8 @@ t_command *command_new()
 void	command_add_back(t_command **head, t_command *command)
 {
 	t_command	*curr;
-	
-	if(*head == NULL)
+
+	if (*head == NULL)
 	{
 		*head = command;
 		return ;
@@ -28,7 +39,7 @@ void	command_add_back(t_command **head, t_command *command)
 		if (curr->next == NULL)
 		{
 			curr->next = command;
-			break;
+			break ;
 		}
 		curr = curr->next;
 	}
@@ -36,10 +47,10 @@ void	command_add_back(t_command **head, t_command *command)
 
 void	free_argv(char **argv)
 {
-	int i;
+	int	i;
 
 	if (!argv)
-		return;
+		return ;
 	i = 0;
 	while (argv[i] != NULL)
 	{
@@ -53,9 +64,9 @@ void	free_commands(t_command **head)
 {
 	t_command	*curr1;
 	t_command	*curr2;
-	
+
 	curr1 = *head;
-	curr2 = NULL; 
+	curr2 = NULL;
 	while (curr1 != NULL)
 	{
 		curr2 = curr1->next;

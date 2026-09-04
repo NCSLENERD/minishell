@@ -1,3 +1,14 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   utils_expansion.c                                  :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: nmayela <nmayela@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/09/04 12:00:00 by nmayela           #+#    #+#             */
+/*   Updated: 2026/09/04 12:00:00 by nmayela          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #include "../../minishell.h"
 
 int	is_expandable(char *content, int i)
@@ -55,7 +66,7 @@ int	expand_tokens(t_token *tokens, t_shell *shell)
 	{
 		curr = tokens->piece;
 		if (tokens->redir_type == R_HEREDOC)
-				tokens = tokens->next;
+			tokens = tokens->next;
 		else if (tokens->type == MOT)
 		{
 			while (curr)

@@ -20,10 +20,10 @@ int	lexer(char *line, t_token **head)
 	i = 0;
 	while (line[i] != '\0')
 	{
-		while(is_space(line[i]))
+		while (is_space(line[i]))
 			i++;
-		if	(line[i] == '\0')
-			break;
+		if (line[i] == '\0')
+			break ;
 		if (is_operator(line[i]))
 			ret = read_op(line, &i, head);
 		else

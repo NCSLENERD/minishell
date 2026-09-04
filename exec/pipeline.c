@@ -58,7 +58,7 @@ int	run_pipeline(t_command *cmds, t_shell *shell)
 			return (1);
 		prev_fd = parent_pipe_setup(prev_fd, fds, curr);
 		curr = curr->next;
-	}	
+	}
 	wait_all(pid, shell);
 	setup_signals_prompt();
 	return (0);

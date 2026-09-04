@@ -14,7 +14,7 @@
 int	parser(t_token *tokens, t_command **head)
 {
 	t_command	*tmp;
-	int	ret;
+	int			ret;
 
 	while (tokens != NULL)
 	{
@@ -42,16 +42,16 @@ int	add_redirect2(t_token *token, t_piece **fields)
 	if (split_word(token->next, fields) == ERR_MALLOC)
 		return (ERR_MALLOC);
 	if (count_fields(*fields) != 1)
-		return (cmd_error(get_redir_symbol(token->redir_type), 
-	"ambiguous redirect", ERR_REDIR));
+		return (cmd_error(get_redir_symbol(token->redir_type),
+				"ambiguous redirect", ERR_REDIR));
 	return (0);
 }
 
 int	add_redirect(t_token *token, t_command *command)
 {
 	t_redirect	*new;
-	t_piece	*fields;
-	int	ret;
+	t_piece		*fields;
+	int			ret;
 
 	fields = NULL;
 	new = redirect_new(token->redir_type);
@@ -79,7 +79,7 @@ int	add_redirect(t_token *token, t_command *command)
 int	fill_command2(t_token **tokens, t_command *cmd, t_piece **fields)
 {
 	t_token	*curr_token;
-	int	ret;
+	int		ret;
 
 	curr_token = *tokens;
 	while (curr_token != NULL && curr_token->type != PIPE)
@@ -106,7 +106,7 @@ int	fill_command2(t_token **tokens, t_command *cmd, t_piece **fields)
 int	fill_command(t_token **tokens, t_command *cmd)
 {
 	t_piece	*fields;
-	int	ret;	
+	int		ret;
 
 	fields = NULL;
 	ret = fill_command2(tokens, cmd, &fields);
@@ -124,5 +124,3 @@ int	fill_command(t_token **tokens, t_command *cmd)
 	free_pieces(fields);
 	return (0);
 }
-
-

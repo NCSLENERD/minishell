@@ -15,9 +15,9 @@ void	free_env(t_env **head)
 {
 	t_env	*curr1;
 	t_env	*curr2;
-	
+
 	curr1 = *head;
-	curr2 = NULL; 
+	curr2 = NULL;
 	while (curr1 != NULL)
 	{
 		curr2 = curr1->next;
@@ -45,12 +45,12 @@ t_env	*env_new(char *key, char *value, int flag_exported)
 
 void	env_add_back(t_env **head, t_env *env)
 {
-	t_env *curr;
-	
-	if(*head == NULL)
+	t_env	*curr;
+
+	if (*head == NULL)
 	{
 		*head = env;
-		return;
+		return ;
 	}
 	curr = *head;
 	while (curr != NULL)
@@ -58,7 +58,7 @@ void	env_add_back(t_env **head, t_env *env)
 		if (curr->next == NULL)
 		{
 			curr->next = env;
-			break;
+			break ;
 		}
 		curr = curr->next;
 	}

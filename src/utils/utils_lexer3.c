@@ -11,14 +11,14 @@
 /* ************************************************************************** */
 #include "../../minishell.h"
 
-int	is_dollar_open(int i, char *line)	
+int	is_dollar_open(int i, char *line)
 {
 	if (line[i] == '$' && get_quote_type(line, i + 1) != Q_NONE)
 		return (1);
 	return (0);
 }
 
-int	read_piece2(char *line, int *i, int	*start, t_quote *quote)
+int	read_piece2(char *line, int *i, int *start, t_quote *quote)
 {
 	int	flag_backslash;
 
@@ -28,8 +28,8 @@ int	read_piece2(char *line, int *i, int	*start, t_quote *quote)
 		*i = *i + 1;
 		flag_backslash = 1;
 	}
-	else if(is_dollar_open(*i, line))
-		*i = *i + 1;	
+	else if (is_dollar_open(*i, line))
+		*i = *i + 1;
 	*quote = get_quote_type(line, *i);
 	if (*quote != Q_NONE)
 		*i = *i +1;
@@ -50,7 +50,7 @@ int	read_piece3(t_piece *piece, int flag_backslash)
 	if (flag_backslash == 1)
 	{
 		stock = trad_backslash(piece->content);
-		if(!stock)
+		if (!stock)
 			return (ERR_MALLOC);
 		free(piece->content);
 		piece->content = stock;
@@ -60,16 +60,16 @@ int	read_piece3(t_piece *piece, int flag_backslash)
 
 int	read_piece(char *line, int *i, t_token *token)
 {
-	int	start;
-	int	flag_backslash;
-	t_piece *piece;
-	t_quote quote;
+	int		start;
+	int		flag_backslash;
+	t_piece	*piece;
+	t_quote	quote;
 
 	flag_backslash = read_piece2(line, i, &start, &quote);
 	if (line[*i] == '\0' && quote != Q_NONE)
 	{
 		quote_error(get_quote_symbol(quote));
-		return (ERR_SYNTAX); // erreur car quote non fermer
+		return (ERR_SYNTAX);
 	}
 	piece = piece_new(quote);
 	if (!piece)

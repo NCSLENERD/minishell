@@ -11,9 +11,9 @@
 /* ************************************************************************** */
 #include "../../minishell.h"
 
-t_redirect *redirect_new(t_type_redirect type)
+t_redirect	*redirect_new(t_type_redirect type)
 {
-	t_redirect *new;
+	t_redirect	*new;
 
 	new = malloc(sizeof(t_redirect));
 	if (!new)
@@ -29,8 +29,8 @@ t_redirect *redirect_new(t_type_redirect type)
 void	redirect_add_back(t_redirect **head, t_redirect *redirect)
 {
 	t_redirect	*curr;
-	
-	if(*head == NULL)
+
+	if (*head == NULL)
 	{
 		*head = redirect;
 		return ;
@@ -41,7 +41,7 @@ void	redirect_add_back(t_redirect **head, t_redirect *redirect)
 		if (curr->next == NULL)
 		{
 			curr->next = redirect;
-			break;
+			break ;
 		}
 		curr = curr->next;
 	}
@@ -51,9 +51,9 @@ void	free_redirects(t_redirect *head)
 {
 	t_redirect	*curr1;
 	t_redirect	*curr2;
-	
+
 	curr1 = head;
-	curr2 = NULL; 
+	curr2 = NULL;
 	while (curr1 != NULL)
 	{
 		curr2 = curr1->next;

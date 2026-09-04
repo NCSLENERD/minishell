@@ -44,16 +44,16 @@ int	builtin_env(t_env *env)
 	return (0);
 }
 
-t_env   *find_env_key(t_env **env, char *key)
+t_env	*find_env_key(t_env **env, char *key)
 {
-    t_env   *curr;
+	t_env	*curr;
 
-    curr = *env;
-    while (curr)
-    {
-        if (ft_strncmp(key, curr->key, ft_strlen(key) + 1) == 0)
-            return (curr);
-        curr = curr->next;
-    }
-    return (NULL);
+	curr = *env;
+	while (curr)
+	{
+		if (ft_strncmp(key, curr->key, ft_strlen(key) + 1) == 0)
+			return (curr);
+		curr = curr->next;
+	}
+	return (NULL);
 }

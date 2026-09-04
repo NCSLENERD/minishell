@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 #include "minishell.h"
 
-int	build_token(char *line, t_shell *shell, t_token	**tokens)
+int	build_token(char *line, t_shell *shell, t_token **tokens)
 {
 	int	ret;
 
@@ -32,7 +32,7 @@ int	build_token(char *line, t_shell *shell, t_token	**tokens)
 	return (0);
 }
 
-int	parse_token(t_shell *shell, t_token	**tokens, t_command	**commands)
+int	parse_token(t_shell *shell, t_token **tokens, t_command **commands)
 {
 	int	ret;
 
@@ -53,9 +53,9 @@ int	parse_token(t_shell *shell, t_token	**tokens, t_command	**commands)
 
 int	process_line(char *line, t_shell *shell)
 {
-	t_token	*tokens;
+	t_token		*tokens;
 	t_command	*commands;
-	int	ret;
+	int			ret;
 
 	tokens = NULL;
 	commands = NULL;
@@ -78,12 +78,12 @@ int	process_line(char *line, t_shell *shell)
 
 void	shell_loop(t_shell *shell)
 {
-	char *line;
+	char	*line;
 
-	while(1)
+	while (1)
 	{
 		line = readline("minishell$ ");
-		if(g_signal != 0)
+		if (g_signal != 0)
 		{
 			shell->exit_code = 128 + g_signal;
 			g_signal = 0;
@@ -91,7 +91,7 @@ void	shell_loop(t_shell *shell)
 		if (line == NULL)
 		{
 			printf("exit\n");
-			break;
+			break ;
 		}
 		if (line[0] != '\0')
 			add_history(line);
@@ -115,7 +115,7 @@ int	main(int argc, char **argv, char **envp)
 	shell.exit_code = 0;
 	if (init_env(envp, &shell.env) != 0)
 	{
-		ft_putstr_fd("minishell: allocation error\n",2);
+		ft_putstr_fd("minishell: allocation error\n", 2);
 		return (1);
 	}
 	setup_signals_prompt();

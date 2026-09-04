@@ -13,7 +13,7 @@
 
 int	calc_len_piece(t_piece *piece)
 {
-	int	len;
+	int		len;
 	t_piece	*curr;
 
 	curr = piece;
@@ -26,9 +26,9 @@ int	calc_len_piece(t_piece *piece)
 	return (len);
 }
 
-char	*piece_to_str(t_piece	*piece)
+char	*piece_to_str(t_piece *piece)
 {
-	int	len;
+	int		len;
 	char	*str;
 
 	len = calc_len_piece(piece);
@@ -39,11 +39,11 @@ char	*piece_to_str(t_piece	*piece)
 	return (str);
 }
 
-void	piece_to_str2(t_piece *piece,  char *str)
+void	piece_to_str2(t_piece *piece, char *str)
 {
-	int	i;
-	int	j;
-	t_piece *curr;
+	int		i;
+	int		j;
+	t_piece	*curr;
 
 	i = 0;
 	j = 0;

@@ -67,7 +67,7 @@ int	collect_heredocs(t_command *cmds, t_shell *shell)
 {
 	t_command	*cmd;
 	t_redirect	*redir;
-	int	ret_read;
+	int			ret_read;
 
 	cmd = cmds;
 	while (cmd != NULL)

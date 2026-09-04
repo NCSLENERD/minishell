@@ -84,4 +84,3 @@ int	heredoc_result(int status)
 		ret = WEXITSTATUS(status);
 	return (ret);
 }
-

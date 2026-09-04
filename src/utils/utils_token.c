@@ -1,8 +1,19 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   utils_token.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: nmayela <nmayela@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/09/04 12:00:00 by nmayela           #+#    #+#             */
+/*   Updated: 2026/09/04 12:00:00 by nmayela          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #include "../../minishell.h"
 
-t_token *token_new(t_type type)
+t_token	*token_new(t_type type)
 {
-	t_token *new;
+	t_token	*new;
 
 	new = malloc(sizeof(t_token));
 	if (!new)
@@ -17,8 +28,8 @@ t_token *token_new(t_type type)
 void	token_add_back(t_token **head, t_token *token)
 {
 	t_token	*curr;
-	
-	if(*head == NULL)
+
+	if (*head == NULL)
 	{
 		*head = token;
 		return ;
@@ -29,7 +40,7 @@ void	token_add_back(t_token **head, t_token *token)
 		if (curr->next == NULL)
 		{
 			curr->next = token;
-			break;
+			break ;
 		}
 		curr = curr->next;
 	}
@@ -39,12 +50,11 @@ void	free_tokens(t_token **head)
 {
 	t_token	*curr1;
 	t_token	*curr2;
-	
-	if(*head == NULL)
+
+	if (*head == NULL)
 		return ;
-	
 	curr1 = *head;
-	curr2 = NULL; 
+	curr2 = NULL;
 	while (curr1 != NULL)
 	{
 		curr2 = curr1->next;

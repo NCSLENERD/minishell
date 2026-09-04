@@ -8,7 +8,6 @@ LIBFT = $(LIBFT_DIR)/libft.a
 SRCS = main.c \
 	lexer.c \
 	parser.c \
-	debug.c \
 	src/utils/utils_env.c \
 	src/utils/utils_envp.c \
 	src/utils/utils_command.c \

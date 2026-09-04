@@ -1,10 +1,21 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   utils_parser4.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: nmayela <nmayela@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/09/04 12:00:00 by nmayela           #+#    #+#             */
+/*   Updated: 2026/09/04 12:00:00 by nmayela          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #include "../../minishell.h"
 
 int	split_word2(t_piece **fields, t_piece *curr, char **acc, int *started)
 {
 	if (curr->quote != Q_NONE)
 	{
-		*acc = expand_append(*acc ,curr->content);
+		*acc = expand_append(*acc, curr->content);
 		if (*acc == NULL)
 			return (ERR_MALLOC);
 		*started = 1;
@@ -19,7 +30,7 @@ int	split_word2(t_piece **fields, t_piece *curr, char **acc, int *started)
 
 int	split_word(t_token *token, t_piece **fields)
 {
-	int	started;
+	int		started;
 	char	*acc;
 	t_piece	*curr;
 
@@ -77,7 +88,7 @@ int	fields_to_argv(t_command *cmd, t_piece *fields)
 	return (0);
 }
 
-int	handle_heredoc(t_redirect	*new, t_token *token)
+int	handle_heredoc(t_redirect *new, t_token *token)
 {
 	t_piece	*tmp;
 
