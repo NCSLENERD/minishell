@@ -1,6 +1,6 @@
 # Minishell — reste à faire
 
-État au 2026-09-03, commit `8dacf58 unset done`.
+État au 2026-09-04, après la passe norminette.
 
 **Le bonus n'est pas fait** : on s'en tient à l'obligatoire.
 
@@ -25,69 +25,62 @@ Testé contre bash, tout passe :
 
 ---
 
-## 1. Norme — 744 erreurs — BLOQUANT
+## 1. Norme — ✅ 0 erreur
 
-Un seul fichier non conforme = 0 au projet, avant même que le shell soit lancé.
+`norminette exec/ src/ *.c minishell.h` → **38 fichiers OK**, `norminette libft/` → **0 erreur**.
 
-### 1a. Whitespace — 501 erreurs, 2 commandes
+Seules restent deux `Notice: GLOBAL_VAR_DETECTED` (`minishell.h` et `src/utils/signal.c`) :
+c'est `g_signal`, la variable globale unique autorisée par le sujet.
 
-```
-221  TOO_FEW_TAB
-218  SPACE_REPLACE_TAB
- 62  SPACE_EMPTY_LINE
-```
+Fait dans cette passe :
+- indentation entièrement ré-générée en tabulations d'après la profondeur d'accolades
+- en-têtes 42 ajoutés aux 11 fichiers qui n'en avaient pas
+- `}t_quote;` → `}\tt_quote;` et commentaires de fin de ligne retirés des enums —
+  c'est `UNEXPECTED_D// &&` qui faisait **planter** norminette sur `minishell.h:130`,
+  ce qui masquait toutes les erreurs du header
+- les 126 prototypes du header alignés sur la même colonne
+- `remove_env_key` et `get_backslash_char` raccourcies sous les 25 lignes
+- `debug.c` supprimé (code mort, aucun appel hors du fichier) + retiré du Makefile
 
-```sh
-perl -pi -e '1 while s/^(\t*) {4}/$1\t/' exec/*.c src/utils/*.c *.c minishell.h
-perl -pi -e 's/[ \t]+$//'                exec/*.c src/utils/*.c *.c minishell.h
-```
-
-Puis **régler l'éditeur pour insérer des tabulations dans les `.c`**, sinon le problème revient.
-
-### 1b. Fonctions > 25 lignes — vrai découpage
-
-- [ ] `exec/builtin_unset.c` → `remove_env_key` : factoriser le `if/else` (les deux branches finissent par les mêmes lignes)
-- [ ] `src/utils/utils_lexer4.c:42`
-- [ ] `debug.c:48` — disparaît si `debug.c` est retiré (voir §2)
-
-### 1c. Le reste — 243 erreurs à la main
-
-En-têtes 42 manquants (11 fichiers), `if(`/`while(`/`return(` → espace avant la parenthèse,
-`t_env   *curr;` → tabulation et non espaces, alignement des déclarations, retour à la ligne en fin de fichier.
-
-### Pires fichiers
-
-| fichier | erreurs |
-|---|---|
-| `exec/builtin_export2.c` | 176 |
-| `exec/builtin_export.c` | 169 |
-| `exec/builtin_unset.c` | 116 |
-| `src/utils/signal.c` | 68 |
-| `exec/builtin_env.c` | 22 |
-
-Vérification : `norminette exec/ src/ *.c minishell.h`
-
----
+**Régler l'éditeur pour insérer des tabulations dans les `.c`**, sinon le problème revient.
 
 ## 2. Ménage avant rendu
 
-- [ ] Retirer `debug.c` et ses `print_debugger` / `print_token` / `print_commands` / `print_pieces_of_token`
+- [x] Retirer `debug.c` et ses `print_debugger` / `print_token` / `print_commands` / `print_pieces_of_token`
 - [ ] Supprimer les dossiers parasites : `ShellPy-main/`, `CLD/`, `l/`, `libft/a.out`
-- [ ] Ajouter un `.gitignore` : `*.o`, `*.a`, `minishell`, `a.out`
-- [ ] Vérifier que la suppression de `src/minilibft/` est bien commitée
+- [x] `.gitignore` en place (`*.out`, `*.o`, `*.a`, `minishell`)
+- [x] Suppression de `src/minilibft/` bien commitée
 - [ ] `libft/` : `ft_split.c` et `ft_memset.c` ont des `main()` commentés — les laisser commentés ou les supprimer
 
 ---
 
 ## 3. Robustesse
 
-- [ ] **Valgrind sous WSL** : `valgrind --leak-check=full --show-leak-kinds=all`
-      sur des pipes, des heredocs, et un `exit` après plusieurs commandes.
-      Le `leaks` macOS ne couvrait que les builtins.
-- [ ] **Signaux en interactif** (impossible à tester en mode piped) :
-      - Ctrl-C au prompt → nouvelle ligne + prompt, `$?` = 130
-      - Ctrl-C pendant un `cat` → le shell survit
-      - Ctrl-D sur ligne vide → quitte
-      - Ctrl-D dans un heredoc → warning bash
-      - Ctrl-\ au prompt → rien
-- [ ] **`env -i ./minishell`** : sans aucun environnement, `export` / `pwd` / `cd` / `echo $PATH` doivent tenir sans segfault
+- [x] **Valgrind sous WSL** : 0 definitely / indirectly / possibly lost, 0 erreur,
+      sur un scénario pipes + heredoc + redirections + builtins + `exit`.
+- [x] **Signaux** testés dans un vrai pty :
+      - Ctrl-C au prompt → nouvelle ligne + prompt ✅, mais **`$?` reste à 0 au lieu de 130** ❌
+      - Ctrl-C pendant `sleep` → 130 ✅ ; pendant `cat` → le shell survit ✅
+      - Ctrl-D sur ligne vide → `exit` et quitte ✅
+      - Ctrl-C dans un heredoc → heredoc annulé, shell vivant ✅, mais `$?` = 0 au lieu de 130 ❌
+      - Ctrl-\\ au prompt → rien ✅ ; pendant `sleep` → `Quit` + 131 ✅
+- [x] **`env -i ./minishell`** : sans aucun environnement, `export` / `pwd` / `cd` / `echo $PATH` doivent tenir sans segfault
+
+---
+
+## 4. Bugs restants
+
+1. **`$?` = 0 au lieu de 130 après un Ctrl-C au prompt** (et dans un heredoc).
+   `src/utils/signal.c` pose `SA_RESTART` sur SIGINT, donc `readline()` ne rend jamais
+   la main : le test `if (g_signal != 0)` de `main.c` ne s'exécute qu'après la commande
+   *suivante*, dont le code retour l'écrase aussitôt.
+
+2. **`echo "\$USER"`** sort `\rlaghsal` au lieu de `$USER`. Le backslash est hors sujet,
+   mais il est implémenté à moitié : dans des guillemets doubles il devrait échapper le `$`.
+
+3. Cosmétique : `exit` dans un pipe affiche `exit` (pas bash) ; `unset PATH ; ls` dit
+   `command not found` là où bash dit `No such file or directory`.
+
+## 5. Ménage dépôt
+
+- **51 fichiers de `CLD/` sont commités** (dont des `.md` et un PDF) — à retirer.
