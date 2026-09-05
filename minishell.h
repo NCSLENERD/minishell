@@ -215,6 +215,8 @@ int			builtin_export(t_command *cmd, t_shell *shell);
 char		*get_cd_target(t_command *cmd, t_shell *shell);
 int			update_pwd(t_shell *shell, char *oldpwd);
 int			cd_error(char *arg, char *msg);
+int			cd_is_tilde(char *arg);
+char		*cd_tilde_path(char *arg, t_shell *shell);
 int			is_valid_identifier(char *arg);
 t_env		*find_env_key(t_env **env, char *key);
 int			export_one(char *arg, t_shell *shell);

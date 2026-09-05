@@ -26,16 +26,8 @@ char	*get_cd_target(t_command *cmd, t_shell *shell)
 {
 	char	*target;
 
-	if (cmd->argv[1] == NULL)
-	{
-		target = get_env_value(shell->env, "HOME");
-		if (target == NULL || target[0] == '\0')
-		{
-			cmd_error("cd", "HOME not set", 1);
-			return (NULL);
-		}
-		return (target);
-	}
+	if (cmd->argv[1] == NULL || cd_is_tilde(cmd->argv[1]))
+		return (cd_tilde_path(cmd->argv[1], shell));
 	if (ft_strncmp(cmd->argv[1], "-", 2) == 0)
 	{
 		target = get_env_value(shell->env, "OLDPWD");
@@ -44,9 +36,9 @@ char	*get_cd_target(t_command *cmd, t_shell *shell)
 			cmd_error("cd", "OLDPWD not set", 1);
 			return (NULL);
 		}
-		return (target);
+		return (ft_strdup(target));
 	}
-	return (cmd->argv[1]);
+	return (ft_strdup(cmd->argv[1]));
 }
 
 int	update_pwd(t_shell *shell, char *oldpwd)
@@ -81,13 +73,16 @@ int	builtin_cd(t_command *cmd, t_shell *shell)
 	if (chdir(target) != 0)
 	{
 		free(oldpwd);
-		return (cd_error(target, strerror(errno)));
+		cd_error(target, strerror(errno));
+		free(target);
+		return (1);
 	}
 	if (cmd->argv[1] != NULL && ft_strncmp(cmd->argv[1], "-", 2) == 0)
 	{
 		ft_putstr_fd(target, STDOUT_FILENO);
 		ft_putstr_fd("\n", STDOUT_FILENO);
 	}
+	free(target);
 	update_pwd(shell, oldpwd);
 	free(oldpwd);
 	return (0);
