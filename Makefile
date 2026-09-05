@@ -41,7 +41,8 @@ SRCS = main.c \
 	exec/heredoc.c \
 	exec/heredoc2.c \
 	exec/env_set.c \
-	exec/builtin_cd.c
+	exec/builtin_cd.c \
+	exec/builtin_cd2.c
 
 OBJS = $(SRCS:.c=.o)
 
