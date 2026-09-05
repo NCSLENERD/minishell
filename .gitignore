@@ -2,3 +2,7 @@
 *.o
 *.a
 minishell
+CLD
+ShellPy-main
+.md
+.claude
