@@ -43,16 +43,21 @@ int	parse_exit_code(char *s, unsigned char *code)
 	int					i;
 	int					sign;
 	unsigned long long	n;
+	unsigned long long	limit;
 
 	n = 0;
 	sign = parse_sign(s, &i);
 	if (s[i] == '\0')
 		return (0);
+	if (sign == 1)
+		limit = 9223372036854775807ULL;
+	else
+		limit = 9223372036854775808ULL;
 	while (s[i] != '\0')
 	{
 		if (s[i] < '0' || s[i] > '9')
 			return (0);
-		if (n > (9223372036854775807ULL - (s[i] - '0')) / 10)
+		if (n > (limit - (s[i] - '0')) / 10)
 			return (0);
 		n = n * 10 + (s[i] - '0');
 		i++;
